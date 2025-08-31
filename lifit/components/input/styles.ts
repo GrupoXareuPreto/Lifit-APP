@@ -2,13 +2,14 @@ import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
     input:{
-        width:"100%",
+        width:306,
+        height: 65,
         borderRadius: 7,
         backgroundColor: "white",
         padding: 12,
         fontSize:16,
         textAlign: "center",
-        alignSelf: 'stretch',
+        alignSelf: 'center',
     },
     title:{
         fontSize: 16,

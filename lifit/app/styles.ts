@@ -19,27 +19,21 @@ export const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 16
     },
-    btn:{
-        width: "100%",
-        height: 52,
-        backgroundColor: "#2B3C45",
-        borderRadius: 10,
-        justifyContent: "center",
-        alignItems:"center"
-    },
-
-    btnCriarConta: {
-        backgroundColor: "#90E05E",
-    },
     page: {
-        flex: 1,
+         width: "100%",
         alignItems: "center",
         justifyContent: "center",
         padding: 20,
-        gap: 0,
+        
         backgroundColor: "#90E05E",
         //BORDA PARA DEV
-        borderWidth:1,
+        borderWidth:0,
         
     },
+    scrollContainer: {
+        flexGrow: 1,
+        justifyContent: 'center', // Centraliza o conteúdo verticalmente
+        backgroundColor: "#90E05E",
+    },
+    
 })

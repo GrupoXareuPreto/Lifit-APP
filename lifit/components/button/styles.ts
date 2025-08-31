@@ -1,10 +1,10 @@
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
-    button:{
-        width: "100%",
-        height: 52,
-        backgroundColor: "green",
+    btn:{
+        width: 166,
+        height: 46,
+        backgroundColor: "#2B3C45",
         borderRadius: 10,
         justifyContent: "center",
         alignItems:"center"
@@ -15,7 +15,5 @@ export const styles = StyleSheet.create({
         color:"pink"
     },
 
-    btnCriarConta: {
-        backgroundColor: "#90E05E",
-    }
+    
 })

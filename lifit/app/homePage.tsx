@@ -1,6 +1,8 @@
-import React from 'react';
-import { View, FlatList, StyleSheet, SafeAreaView, StatusBar } from 'react-native';
+import React, {useState} from 'react';
+import { View, FlatList, StyleSheet, SafeAreaView, StatusBar, TouchableOpacity } from 'react-native';
 import PostCard from '../components/postCard'; // Importando nosso componente
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+
 
 // Dados fictícios para os posts
 const MOCK_POSTS = [
