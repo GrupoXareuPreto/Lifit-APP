@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import { View, FlatList, StyleSheet, SafeAreaView, StatusBar, TouchableOpacity } from 'react-native';
+import { View, FlatList, StyleSheet, SafeAreaView, StatusBar, TouchableOpacity, Text} from 'react-native';
 import PostCard from '../components/postCard'; // Importando nosso componente
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 

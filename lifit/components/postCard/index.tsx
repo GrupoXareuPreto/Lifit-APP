@@ -1,17 +1,69 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
-import { FontAwesome } from '@expo/vector-icons'; // Certifique-se de ter @expo/vector-icons instalado
-import { styles } from "./style"
+import { View, Text, Image, TouchableOpacity } from 'react-native';
+import { FontAwesome } from '@expo/vector-icons';
+import { styles } from "./style";
+import Toast from 'react-native-toast-message';
 
 // Função para formatar números grandes (ex: 23000 -> 23 mil)
-const formatNumber = (num) => {
+const formatNumber = (num: number) => {
   if (num >= 1000) {
     return (num / 1000).toFixed(num % 1000 !== 0 ? 1 : 0).replace('.', ',') + ' mil';
   }
   return num;
 };
 
-const PostCard = ({ post }) => {
+interface PostEvent {
+  title: string;
+  date: string;
+  time: string;
+}
+
+interface Post {
+  avatarUrl: string;
+  userName: string;
+  userHandle: string;
+  postImageUrl: string;
+  likes: number;
+  comments: number;
+  shares: number;
+  timestamp: string;
+  event?: PostEvent;
+}
+
+interface PostCardProps {
+  post: Post;
+}
+
+const PostCard: React.FC<PostCardProps> = ({ post }) => {
+
+  // Funções para ações
+  const handleLike = () => {
+    Toast.show({
+      type: 'success',
+      text1: 'Você curtiu a postagem!',
+      position: 'top',
+      visibilityTime: 2000,
+    });
+  };
+
+  const handleComment = () => {
+    Toast.show({
+      type: 'info',
+      text1: 'Abrindo comentários...',
+      position: 'top',
+      visibilityTime: 2000,
+    });
+  };
+
+  const handleShare = () => {
+    Toast.show({
+      type: 'success',
+      text1: 'Post compartilhado!',
+      position: 'top',
+      visibilityTime: 2000,
+    });
+  };
+
   return (
     <View style={styles.container}>
       {/* Cabeçalho do Post */}
@@ -28,18 +80,21 @@ const PostCard = ({ post }) => {
 
       {/* Barra de Ações */}
       <View style={styles.actionBar}>
-        <View style={styles.action}>
+        <TouchableOpacity style={styles.action} onPress={handleLike}>
           <FontAwesome name="thumbs-o-up" size={20} color="gray" />
           <Text style={styles.actionText}>{formatNumber(post.likes)}</Text>
-        </View>
-        <View style={styles.action}>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.action} onPress={handleComment}>
           <FontAwesome name="comment-o" size={20} color="gray" />
           <Text style={styles.actionText}>{formatNumber(post.comments)}</Text>
-        </View>
-        <View style={styles.action}>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.action} onPress={handleShare}>
           <FontAwesome name="share" size={20} color="gray" />
           <Text style={styles.actionText}>{formatNumber(post.shares)}</Text>
-        </View>
+        </TouchableOpacity>
+
         <Text style={styles.timestamp}>{post.timestamp}</Text>
       </View>
 
@@ -50,7 +105,6 @@ const PostCard = ({ post }) => {
           <Text style={styles.eventDetails}>{post.event.date}</Text>
           <Text style={styles.eventDetails}>{post.event.time}</Text>
           <View style={styles.likesContainer}>
-            {/* Simulação das imagens de quem curtiu */}
             <Image source={{ uri: 'https://randomuser.me/api/portraits/women/44.jpg' }} style={styles.likedAvatar} />
             <Image source={{ uri: 'https://randomuser.me/api/portraits/men/46.jpg' }} style={[styles.likedAvatar, styles.likedAvatarOverlap]} />
             <Text style={styles.likedText}>curtido por...</Text>
@@ -60,6 +114,5 @@ const PostCard = ({ post }) => {
     </View>
   );
 };
-
 
 export default PostCard;

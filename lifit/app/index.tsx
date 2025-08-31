@@ -1,21 +1,39 @@
 import React, {useState} from "react"
-import { View , Text, StyleSheet, Image, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback, Keyboard} from "react-native"
+import { View , Text, StyleSheet, Image, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback, Keyboard, Alert} from "react-native"
 import { Button } from "@/components/button"
 import { Input } from "@/components/input"
 import { Route, router } from "expo-router"
 import {styles} from "./styles"
 import { Ionicons } from "@expo/vector-icons";
 import  NotificationItem  from "@/app/notificacoes";
+import { Stack } from "expo-router";
+import Toast from "react-native-toast-message";
+import axios from "axios"
 
 export default function Index(){
     const [senhaVisivel, setSenhaVisivel] = useState(false);
+    const [login, setLogin] = useState("")
+    const [senha, setSenha] = useState("")
 
     function handleNext(){
         router.navigate("/createLoginPage")
     }
 
-    function nextHomePage(){
-        router.navigate("/homePage")
+    async function handleLogin(){
+        try {
+            const response = await axios.get(`http://localhost:8080/usuario/${login}/${senha}`)
+
+            if(response.status === 200){
+                router.navigate("/homePage")
+            }
+        } catch (error) {
+            if(axios.isAxiosError(error) && error.response?.status === 404){
+                Alert.alert("Erro", "Dados inválidos")
+            } else {
+                console.error(error)
+                Alert.alert("Erro", "Não foi possível fazer o login.")
+            }
+        }
     }
 
     function testePagInicial(){
@@ -50,12 +68,12 @@ export default function Index(){
                                     
 
                             <View style={styles.container}>
-                                <Input placeholder="Email / Nome de Usuário"/>
-                                <Input placeholder="Senha" secureTextEntry={!senhaVisivel} />
+                                <Input placeholder="Email / Nome de Usuário" onChangeText={setLogin} value={login}/>
+                                <Input placeholder="Senha" secureTextEntry={!senhaVisivel} onChangeText={setSenha} value={senha}/>
                             </View>
 
                             <View style={styles.container}>
-                                    <Button title="Login" onPress={nextHomePage} textColor="#FFFFFF"/>
+                                    <Button title="Login" onPress={handleLogin} textColor="#FFFFFF"/>
                                     <Button title="Criar Conta" backgroundColor="#90E05E" onPress={handleNext} textColor="#262626"/>
                                     <Button title="Teste pagInicial" textColor="tomato" onPress={testePagInicial}/>
                                 <TouchableOpacity onPress={() => setSenhaVisivel(!senhaVisivel)}>
