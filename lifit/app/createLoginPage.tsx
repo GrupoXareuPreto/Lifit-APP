@@ -12,6 +12,7 @@ export default function CreateLoginPage(){
     const [senha, setSenha] = useState("")
     const [confirmarSenha, setConfirmarSenha] = useState("")
     const [nomeUsuario, setNomeUsuario] = useState("")
+    const API = "http://192.168.2.142:8080"
 
     async function handleCreateAccount(){
         if(senha !== confirmarSenha){
@@ -20,14 +21,14 @@ export default function CreateLoginPage(){
         }
 
         try {
-            const response = await axios.post("http://localhost:8080/usuario", {
+            const response = await axios.post(API+"/usuario", {
                 nome,
                 biografia: "Biografia padrão",
                 email,
                 senha,
                 nomeUsuario
             })
-
+            console.log(response)
             if(response.status === 200 || response.status === 201){
                 Alert.alert("Sucesso", "Conta criada com sucesso!")
                 router.navigate("/")
