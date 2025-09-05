@@ -1,8 +1,9 @@
-import React, {useState} from 'react';
-import { View, FlatList, StyleSheet, SafeAreaView, StatusBar, TouchableOpacity, Text} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import React from 'react';
+import { FlatList, StatusBar, StyleSheet, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import PostCard from '../components/postCard'; // Importando nosso componente
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-
 
 // Dados fictícios para os posts
 const MOCK_POSTS = [
@@ -51,7 +52,7 @@ const MOCK_POSTS = [
 
 const FeedScreen = () => {
   // A função que diz ao FlatList como renderizar cada item
-  const renderPost = ({ item }) => (
+  const renderPost = ({ item }: { item: any }) => (
     <PostCard post={item} />
   );
 
@@ -64,6 +65,12 @@ const FeedScreen = () => {
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
       />
+      <TouchableOpacity
+        style={styles.addButton}
+        onPress={() => router.navigate('/createPost')}
+      >
+        <Ionicons name="add" size={32} color="white" />
+      </TouchableOpacity>
     </SafeAreaView>
   );
 };
@@ -72,6 +79,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f0f2f5', // Um cinza claro para o fundo
+  },
+  addButton: {
+    position: 'absolute',
+    bottom: 30,
+    alignSelf: 'center',
+    backgroundColor: '#2B3C45',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 5,
   },
 });
 

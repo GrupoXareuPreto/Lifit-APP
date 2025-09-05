@@ -2,6 +2,7 @@ import { StyleSheet } from "react-native";
 
 
 export const styles = StyleSheet.create({
+    
     container: {
         width: "100%",
         alignItems: "center",
@@ -9,7 +10,7 @@ export const styles = StyleSheet.create({
         gap: 8,
         backgroundColor: "#90E05E",
         //BORDA PARA DEV
-        borderWidth:0,
+        borderWidth:1,
 
         padding: 8,
 
@@ -21,13 +22,14 @@ export const styles = StyleSheet.create({
     },
     page: {
          width: "100%",
+        flex: 1,
         alignItems: "center",
         justifyContent: "center",
         padding: 20,
         
         backgroundColor: "#90E05E",
         //BORDA PARA DEV
-        borderWidth:0,
+        borderWidth:1,
         
     },
     scrollContainer: {

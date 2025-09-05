@@ -1,10 +1,11 @@
-import React, {useState} from "react"
-import { View , Text, StyleSheet, TextInput, Alert} from "react-native"
 import { Button } from "@/components/button"
 import { Input } from "@/components/input"
-import { Route, router } from "expo-router"
-import {styles} from "./styles"
 import axios from "axios"
+import { router } from "expo-router"
+import React, { useState } from "react"
+import { Alert, View } from "react-native"
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { styles } from "./styles"
 
 export default function CreateLoginPage(){
     const [nome, setNome] = useState("")
@@ -12,7 +13,7 @@ export default function CreateLoginPage(){
     const [senha, setSenha] = useState("")
     const [confirmarSenha, setConfirmarSenha] = useState("")
     const [nomeUsuario, setNomeUsuario] = useState("")
-    const API = "http://192.168.2.142:8080"
+    const API="http://192.168.0.10:8080"
 
     async function handleCreateAccount(){
         if(senha !== confirmarSenha){
@@ -40,7 +41,7 @@ export default function CreateLoginPage(){
     }
 
     return(
-        <View style={styles.page}>
+        <SafeAreaView style={styles.page}>
             <View style={[styles.container, {gap:32,}]}>
                 <Input placeholder="Nome Completo" onChangeText={setNome} value={nome}/>
                 <Input placeholder="Email" onChangeText={setEmail} value={email}/>
@@ -54,7 +55,7 @@ export default function CreateLoginPage(){
                <Button title="Voltar" onPress={() => router.back()} backgroundColor="#2B3C45" textColor="#FFFFFF"/> 
             </View>
             
-        </View>
+        </SafeAreaView>
     )
 }
 
