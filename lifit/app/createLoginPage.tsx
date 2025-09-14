@@ -13,7 +13,7 @@ export default function CreateLoginPage(){
     const [senha, setSenha] = useState("")
     const [confirmarSenha, setConfirmarSenha] = useState("")
     const [nomeUsuario, setNomeUsuario] = useState("")
-    const API="http://192.168.0.10:8080"
+    const API="https://lifit-augfbubbgtcydahz.brazilsouth-01.azurewebsites.net/"
 
     async function handleCreateAccount(){
         if(senha !== confirmarSenha){

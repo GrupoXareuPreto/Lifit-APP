@@ -11,7 +11,7 @@ export default function PostForm() {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const { userData } = useUser();
-    const API = "http://192.168.0.10:8080";
+    const API = "https://lifit-augfbubbgtcydahz.brazilsouth-01.azurewebsites.net/";
 
     const handlePost = async () => {
         if (!userData) {
