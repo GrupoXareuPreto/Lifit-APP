@@ -4,11 +4,13 @@ import React from 'react';
 import { FlatList, StatusBar, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PostCard from '../components/postCard'; // Importando nosso componente
+import axios from 'axios';
+const API="https://lifit-augfbubbgtcydahz.brazilsouth-01.azurewebsites.net";
 
 // Dados fictícios para os posts
 const MOCK_POSTS = [
   {
-    id: '1',
+    id: '4',
     userName: 'Xareu Preto',
     userHandle: '@xareu',
     avatarUrl: 'https://i.imgur.com/S5yn29c.png', // Avatar do Xareu
@@ -47,6 +49,7 @@ const MOCK_POSTS = [
     timestamp: 'HÁ 7 DIAS',
     event: null,
   },
+  axios.get(`${API}/postagem`)
 ];
 
 
