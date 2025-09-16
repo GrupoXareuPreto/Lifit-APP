@@ -8,13 +8,14 @@ import React, { useState } from "react"
 import { Alert, Image, TouchableOpacity, View } from "react-native"
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { styles } from "./styles"
+import { apiAZURE } from "@/config/cloudinaryConfig"
 
 export default function Index(){
     const [senhaVisivel, setSenhaVisivel] = useState(false);
     const [login, setLogin] = useState("")
     const [senha, setSenha] = useState("")
     const { setUserData } = useUser();
-    const API="https://lifit-augfbubbgtcydahz.brazilsouth-01.azurewebsites.net/"
+    const API=apiAZURE
 
     function handleNext(){
         router.navigate("/createLoginPage")
@@ -26,7 +27,7 @@ export default function Index(){
 
             if(response.status === 200){
                 setUserData(response.data);
-                router.navigate("/homePage")
+                router.replace("/(tabs)");
             }else{
                 Alert.alert("Erro", "Dados inválidos")
             }

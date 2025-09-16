@@ -9,7 +9,7 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="index" />
-          <Stack.Screen name="homePage" />
+          <Stack.Screen name="(tabs)" />
           <Stack.Screen name="createLoginPage" />
           <Stack.Screen name="createPost" />
           <Stack.Screen name="postForm" />

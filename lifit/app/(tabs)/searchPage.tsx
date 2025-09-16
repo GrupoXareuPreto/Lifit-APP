@@ -7,6 +7,6 @@ import {styles} from "./styles"
 
 export default function SearchPage(){
     return(
-        <Image source={require("@/assets/images/AndrePai.jpg")}></Image>
+        <Image source={require("@/assets/images/AndrePai.jpg")} style={{ height: "100%", width: "100%" }}></Image>
     )
 }

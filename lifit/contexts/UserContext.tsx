@@ -1,12 +1,34 @@
 import React, { createContext, ReactNode, useContext, useState } from 'react';
 
+interface Post {
+    id: number;
+    midia: string;
+    titulo: string;
+    descricao: string;
+    dataPublicacao: string;
+    curtidas: any[];
+    comentarios: any[];
+    compartilhamentos: any[];
+}
+
 interface User {
     id: number;
     nome: string;
-    biografia: string;
+    biografia: string | null;
     email: string;
     senha: string;
     nomeUsuario: string;
+    metas: any[];
+    postagens: Post[];
+    curtidas: any[];
+    comentarios: any[];
+    eventosCriados: any[];
+    mensagens: any[];
+    compartilhamentos: any[];
+    eventosParticipar: any[];
+    seguidores: any[];
+    seguindo: any[];
+    conversas: any[];
 }
 
 interface UserContextType {
@@ -29,7 +51,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 export const useUser = () => {
     const context = useContext(UserContext);
     if (!context) {
-        throw new Error("useUser must be used within a UserProvider");
+        throw new Error("errou useUser");
     }
     return context;
 };
