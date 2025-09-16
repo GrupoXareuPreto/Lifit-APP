@@ -1,11 +1,9 @@
-import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
 import React from 'react';
-import { FlatList, StatusBar, StyleSheet, TouchableOpacity } from 'react-native';
+import { FlatList, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import PostCard from '../components/postCard'; // Importando nosso componente
-import axios from 'axios';
-const API="https://lifit-augfbubbgtcydahz.brazilsouth-01.azurewebsites.net";
+import PostCard from '../../components/postCard'; // Importando nosso componente
+import { apiAZURE } from '@/config/cloudinaryConfig';
+const API=apiAZURE
 
 // Dados fictícios para os posts
 const MOCK_POSTS = [
@@ -49,7 +47,7 @@ const MOCK_POSTS = [
     timestamp: 'HÁ 7 DIAS',
     event: null,
   },
-  axios.get(`${API}/postagem`)
+  
 ];
 
 
@@ -60,21 +58,16 @@ const FeedScreen = () => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
+      
       <FlatList
         data={MOCK_POSTS}
         renderItem={renderPost}
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
       />
-      <TouchableOpacity
-        style={styles.addButton}
-        onPress={() => router.navigate('/createPost')}
-      >
-        <Ionicons name="add" size={32} color="white" />
-      </TouchableOpacity>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -82,18 +75,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f0f2f5', // Um cinza claro para o fundo
-  },
-  addButton: {
-    position: 'absolute',
-    bottom: 30,
-    alignSelf: 'center',
-    backgroundColor: '#2B3C45',
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 5,
   },
 });
 

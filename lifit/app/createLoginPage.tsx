@@ -6,6 +6,7 @@ import React, { useState } from "react"
 import { Alert, View } from "react-native"
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { styles } from "./styles"
+import { apiAZURE } from "@/config/cloudinaryConfig"
 
 export default function CreateLoginPage(){
     const [nome, setNome] = useState("")
@@ -13,7 +14,7 @@ export default function CreateLoginPage(){
     const [senha, setSenha] = useState("")
     const [confirmarSenha, setConfirmarSenha] = useState("")
     const [nomeUsuario, setNomeUsuario] = useState("")
-    const API="https://lifit-augfbubbgtcydahz.brazilsouth-01.azurewebsites.net/"
+    const API=apiAZURE
 
     async function handleCreateAccount(){
         if(senha !== confirmarSenha){
