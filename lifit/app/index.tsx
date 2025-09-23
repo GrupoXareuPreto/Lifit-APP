@@ -41,9 +41,7 @@ export default function Index(){
         }
     }
 
-    function testePagInicial(){
-        router.navigate("/homePage")
-    }
+    
     return(
         <SafeAreaView style={styles.page}>
 
@@ -60,7 +58,7 @@ export default function Index(){
                             <View style={styles.container}>
                                     <Button title="Login" onPress={handleLogin} textColor="#FFFFFF"/>
                                     <Button title="Criar Conta" backgroundColor="#90E05E" onPress={handleNext} textColor="#262626"/>
-                                    <Button title="Teste pagInicial" textColor="tomato" onPress={testePagInicial}/>
+                                   
                                 <TouchableOpacity onPress={() => setSenhaVisivel(!senhaVisivel)}>
                                     <Ionicons
                                         name={senhaVisivel ? "eye" : "eye-off"}
