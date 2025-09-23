@@ -5,6 +5,7 @@ import { router } from 'expo-router';
 import React, { useRef, useState } from 'react';
 import { Alert, Button, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as FileSystem from 'expo-file-system';
 
 export default function CreatePost() {
   const insets = useSafeAreaInsets();
@@ -22,14 +23,32 @@ export default function CreatePost() {
     });
 
     if (!result.canceled) {
-      setImage(result.assets[0].uri);
+      try {
+        const src = result.assets[0].uri;
+        const extMatch = src.match(/\.(jpg|jpeg|png|heic|webp)$/i);
+        const ext = extMatch ? extMatch[0] : '.jpg';
+        const dest = FileSystem.cacheDirectory + `post_${Date.now()}${ext}`;
+        await FileSystem.copyAsync({ from: src, to: dest });
+        setImage(dest);
+      } catch (e) {
+        console.warn('Falha ao persistir imagem da galeria, usando URI original:', e);
+        setImage(result.assets[0].uri);
+      }
     }
   };
 
   const takePicture = async () => {
     if (cameraRef.current) {
       const photo = await cameraRef.current.takePictureAsync();
-      setImage(photo.uri);
+      try {
+        const ext = '.jpg';
+        const dest = FileSystem.cacheDirectory + `post_${Date.now()}${ext}`;
+        await FileSystem.copyAsync({ from: photo.uri, to: dest });
+        setImage(dest);
+      } catch (e) {
+        console.warn('Falha ao persistir foto da câmera, usando URI original:', e);
+        setImage(photo.uri);
+      }
     }
   };
 

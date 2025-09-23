@@ -28,6 +28,7 @@ interface Post {
   shares: number;
   timestamp: string;
   event?: PostEvent;
+
 }
 
 interface PostCardProps {

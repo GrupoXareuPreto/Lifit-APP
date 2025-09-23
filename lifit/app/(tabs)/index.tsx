@@ -5,6 +5,7 @@ import PostCard from '../../components/postCard'; // Importando nosso componente
 import { apiAZURE } from '@/config/cloudinaryConfig';
 const API=apiAZURE
 
+
 // Dados fictícios para os posts
 const MOCK_POSTS = [
   {
@@ -58,7 +59,8 @@ const FeedScreen = () => {
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+      
       <StatusBar barStyle="dark-content" />
       
       <FlatList
@@ -67,7 +69,7 @@ const FeedScreen = () => {
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
       />
-    </View>
+    </SafeAreaView>
   );
 };
 
