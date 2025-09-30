@@ -23,7 +23,10 @@ export default function Index(){
 
     async function handleLogin(){
         try {
-            const response = await axios.get(`${API}/usuario/${login}/${senha}`)
+            const dadosLogin = { 
+                nomeUsuario: login, 
+                senha: senha }
+            const response = await axios.post(`${API}/usuario/autenticar`, dadosLogin)
 
             if(response.status === 200){
                 setUserData(response.data);
