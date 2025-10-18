@@ -48,30 +48,26 @@ export default function Index(){
     return(
         <SafeAreaView style={styles.page}>
 
-                            <View style={[styles.container, { marginBottom: 68 }]}>
-                                <Image source={require("@/assets/images/lifit-logo.png")}/> 
+                            <View style={[styles.container, { marginBottom: 60, marginTop: -70 }]}>
+                                <Image source={require("@/assets/images/lifit-logo.png")}/>
                             </View>
                                     
-
-                            <View style={styles.container}>
                                 <Input placeholder="Email" onChangeText={setLogin} value={login}/>
-                                <Input placeholder="Senha" secureTextEntry={!senhaVisivel} onChangeText={setSenha} value={senha}/>
-                            </View>
 
-                            <View style={styles.container}>
-                                    <Button title="Login" onPress={handleLogin} textColor="#FFFFFF"/>
-                                    <Button title="Criar Conta" backgroundColor="#90E05E" onPress={handleNext} textColor="#262626"/>
-                                   
-                                <TouchableOpacity onPress={() => setSenhaVisivel(!senhaVisivel)}>
-                                    <Ionicons
-                                        name={senhaVisivel ? "eye" : "eye-off"}
-                                        size={22}
-                                        color="#555"
-                                    />
+                            <View style={styles.senhacontainer}>
+                                <Input placeholder="Senha" secureTextEntry={!senhaVisivel} onChangeText={setSenha} value={senha}  style={styles.senhaInput}/>
+
+                                <TouchableOpacity onPress={() => setSenhaVisivel(!senhaVisivel)} style={styles.eyeIcon}>
+                                    <Ionicons name={senhaVisivel ? "eye" : "eye-off"} size={24} color="gray" />
                                 </TouchableOpacity>
                             </View>
+                            <Button title="Esqueci minha senha" backgroundColor="#90E05E" textColor="#262626" onPress={() => Alert.alert("Funcionalidade não implementada")}/>
+
+                            <View style={[styles.container, {marginTop: 50, marginBottom: -30}]}>
+                                    <Button title="Login" onPress={handleLogin} textColor="#FFFFFF"/>
+                                    <Button title="Criar Conta" backgroundColor="#90E05E" onPress={handleNext} textColor="#262626"/>
+                            </View>
+
         </SafeAreaView>
     )
 }
-
-

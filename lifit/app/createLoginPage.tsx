@@ -43,7 +43,7 @@ export default function CreateLoginPage(){
 
     return(
         <SafeAreaView style={styles.page}>
-            <View style={[styles.container, {gap:32,}]}>
+            <View style={[styles.container, {gap:20,}]}>
                 <Input placeholder="Nome Completo" onChangeText={setNome} value={nome}/>
                 <Input placeholder="Email" onChangeText={setEmail} value={email}/>
                 <Input placeholder="Senha" secureTextEntry={true} onChangeText={setSenha} value={senha}/>
@@ -51,9 +51,8 @@ export default function CreateLoginPage(){
                 <Input placeholder="Nome de Usuário" onChangeText={setNomeUsuario} value={nomeUsuario}/>
             </View>
             
-            <View style={styles.container}>
+            <View style={[styles.container, {marginBottom: -20, marginTop: 40, gap:10}]}>
                 <Button title="Criar Conta" onPress={handleCreateAccount} backgroundColor="#2B3C45" textColor="#FFFFFF"/> 
-               <Button title="Voltar" onPress={() => router.back()} backgroundColor="#2B3C45" textColor="#FFFFFF"/> 
             </View>
             
         </SafeAreaView>
