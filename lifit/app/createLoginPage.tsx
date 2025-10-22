@@ -1,12 +1,11 @@
 import { Button } from "@/components/button"
 import { Input } from "@/components/input"
-import axios from "axios"
+import api from "@/config/axiosConfig"
 import { router } from "expo-router"
 import React, { useState } from "react"
 import { Alert, View } from "react-native"
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { styles } from "./styles"
-import { apiAZURE } from "@/config/cloudinaryConfig"
 
 export default function CreateLoginPage(){
     const [nome, setNome] = useState("")
@@ -14,7 +13,6 @@ export default function CreateLoginPage(){
     const [senha, setSenha] = useState("")
     const [confirmarSenha, setConfirmarSenha] = useState("")
     const [nomeUsuario, setNomeUsuario] = useState("")
-    const API=apiAZURE
 
     async function handleCreateAccount(){
         if(senha !== confirmarSenha){
@@ -23,7 +21,7 @@ export default function CreateLoginPage(){
         }
 
         try {
-            const response = await axios.post(API+"/usuario", {
+            const response = await api.post("usuario", {
                 nome,
                 biografia: "Biografia padrão",
                 email,

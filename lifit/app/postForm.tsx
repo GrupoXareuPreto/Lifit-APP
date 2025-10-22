@@ -1,8 +1,8 @@
 import { Button } from '@/components/button';
 import { Input } from '@/components/input';
-import { apiAZURE, cloudinaryConfig } from '@/config/cloudinaryConfig';
+import { cloudinaryConfig } from '@/config/cloudinaryConfig';
 import { useUser } from '@/contexts/UserContext';
-import axios from 'axios';
+import api from '@/config/axiosConfig';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Alert, Image, StyleSheet, View } from 'react-native';
@@ -19,7 +19,6 @@ export default function PostForm() {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const { userData } = useUser();
-    const API = apiAZURE;
     
     useEffect(() => {
         let isMounted = true;
@@ -135,7 +134,7 @@ export default function PostForm() {
         };
 
         try {
-            const response = await axios.post(`${API}/postagem`, postData);
+            const response = await api.post('postagem', postData);
             if (response.status === 201 || response.status === 200) {
                 Alert.alert("Sucesso", "Postagem criada com sucesso!");
                 router.replace("/(tabs)");

@@ -2,20 +2,18 @@ import { Button } from "@/components/button"
 import { Input } from "@/components/input"
 import { useUser } from "@/contexts/UserContext"
 import { Ionicons } from "@expo/vector-icons"
-import axios from "axios"
+import api from "@/config/axiosConfig"
 import { router } from "expo-router"
 import React, { useState } from "react"
 import { Alert, Image, TouchableOpacity, View } from "react-native"
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { styles } from "./styles"
-import { apiAZURE } from "@/config/cloudinaryConfig"
 
 export default function Index(){
     const [senhaVisivel, setSenhaVisivel] = useState(false);
     const [login, setLogin] = useState("")
     const [senha, setSenha] = useState("")
-    const { setUserData } = useUser();
-    const API=apiAZURE
+    const { setUserData, setToken } = useUser();
 
     function handleNext(){
         router.navigate("/createLoginPage")
@@ -24,18 +22,33 @@ export default function Index(){
     async function handleLogin(){
         try {
             const dadosLogin = { 
-                nomeUsuario: login, 
-                senha: senha }
-            const response = await axios.post(`${API}/usuario/autenticar`, dadosLogin)
+                nomeUsuarioEmail: login, 
+                senha: senha 
+            }
+            
+            // 1. Faz login e recebe o token
+            const loginResponse = await api.post('auth/login', dadosLogin)
 
-            if(response.status === 200){
-                setUserData(response.data);
-                router.replace("/(tabs)");
-            }else{
+            if(loginResponse.status === 200 && loginResponse.data.token){
+                const receivedToken = loginResponse.data.token;
+                
+                // 2. Salva o token
+                await setToken(receivedToken);
+                
+                // 3. Busca os dados do usuário usando o token
+                const userResponse = await api.get('usuario/me');
+                
+                if(userResponse.status === 200){
+                    setUserData(userResponse.data);
+                    router.replace("/(tabs)");
+                } else {
+                    Alert.alert("Erro", "Não foi possível carregar os dados do usuário")
+                }
+            } else {
                 Alert.alert("Erro", "Dados inválidos")
             }
-        } catch (error) {
-            if(axios.isAxiosError(error) && error.response?.status === 404){
+        } catch (error: any) {
+            if(error.response?.status === 404 || error.response?.status === 401){
                 Alert.alert("Erro", "Dados inválidos")
             } else {
                 console.error(error)
