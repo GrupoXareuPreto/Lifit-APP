@@ -19,9 +19,9 @@ export default function Index(){
         router.navigate("/createLoginPage")
     }
 
-    async function handleLogin(){
+    async function handleLogin(testCredentials?: { nomeUsuarioEmail: string; senha: string }){
         try {
-            const dadosLogin = { 
+            const dadosLogin = testCredentials || { 
                 nomeUsuarioEmail: login, 
                 senha: senha 
             }
@@ -57,9 +57,22 @@ export default function Index(){
         }
     }
 
+    function handleTestLogin(){
+        handleLogin({
+            nomeUsuarioEmail: "teste3@gmail.com",
+            senha: "teste3"
+        });
+    }
+
     
     return(
         <SafeAreaView style={styles.page}>
+                            <TouchableOpacity 
+                                onPress={handleTestLogin}
+                                style={{ position: 'absolute', top: 40, right: 10, backgroundColor: '#FF6B6B', padding: 10, borderRadius: 5, zIndex: 999 }}
+                            >
+                                <Ionicons name="flask" size={20} color="white" />
+                            </TouchableOpacity>
 
                             <View style={[styles.container, { marginBottom: 60, marginTop: -70 }]}>
                                 <Image source={require("@/assets/images/lifit-logo.png")}/>
@@ -77,7 +90,7 @@ export default function Index(){
                             <Button title="Esqueci minha senha" backgroundColor="#90E05E" textColor="#262626" onPress={() => Alert.alert("Funcionalidade não implementada")}/>
 
                             <View style={[styles.container, {marginTop: 50, marginBottom: -30}]}>
-                                    <Button title="Login" onPress={handleLogin} textColor="#FFFFFF"/>
+                                    <Button title="Login" onPress={() => handleLogin()} textColor="#FFFFFF"/>
                                     <Button title="Criar Conta" backgroundColor="#90E05E" onPress={handleNext} textColor="#262626"/>
                             </View>
 

@@ -15,6 +15,7 @@ interface Post {
 interface User {
     id: number;
     nome: string;
+    fotoPerfil: string | null;
     biografia: string | null;
     email: string;
     senha: string;

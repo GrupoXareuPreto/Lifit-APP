@@ -3,6 +3,7 @@ import { FlatList, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PostCard from '../../components/postCard'; // Importando nosso componente
 import { apiAZURE } from '@/config/cloudinaryConfig';
+import SwipeableScreen from '@/components/SwipeableScreen';
 const API=apiAZURE
 
 
@@ -59,17 +60,19 @@ const FeedScreen = () => {
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      
-      <StatusBar barStyle="dark-content" />
-      
-      <FlatList
-        data={MOCK_POSTS}
-        renderItem={renderPost}
-        keyExtractor={(item) => item.id}
-        showsVerticalScrollIndicator={false}
-      />
-    </SafeAreaView>
+    <SwipeableScreen currentScreen="index">
+      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+        
+        <StatusBar barStyle="dark-content" />
+        
+        <FlatList
+          data={MOCK_POSTS}
+          renderItem={renderPost}
+          keyExtractor={(item) => item.id}
+          showsVerticalScrollIndicator={false}
+        />
+      </SafeAreaView>
+    </SwipeableScreen>
   );
 };
 

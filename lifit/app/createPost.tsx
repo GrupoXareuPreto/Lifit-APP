@@ -2,8 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions, type CameraType } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
-import React, { useRef, useState } from 'react';
-import { Alert, Button, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Alert, Image, Linking, Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as FileSystem from 'expo-file-system';
 
@@ -12,7 +12,67 @@ export default function CreatePost() {
   const [facing, setFacing] = useState<CameraType>('back');
   const [permission, requestPermission] = useCameraPermissions();
   const [image, setImage] = useState<string | null>(null);
+  const [isReady, setIsReady] = useState(false);
   const cameraRef = useRef<CameraView>(null);
+
+  useEffect(() => {
+    checkAndRequestPermission();
+  }, [permission]);
+
+  const checkAndRequestPermission = async () => {
+    if (!permission) {
+      return;
+    }
+
+    if (!permission.granted) {
+      // Se a permissão não foi concedida, solicita
+      const result = await requestPermission();
+      
+      if (!result.granted) {
+        // Se o usuário negou a permissão
+        if (result.canAskAgain === false) {
+          // Permissão bloqueada, precisa ir nas configurações
+          Alert.alert(
+            "Permissão Necessária",
+            "A permissão de câmera foi negada anteriormente. Para usar esta funcionalidade, você precisa permitir o acesso à câmera nas configurações do seu dispositivo.",
+            [
+              {
+                text: "Cancelar",
+                onPress: () => router.back(),
+                style: "cancel"
+              },
+              {
+                text: "Abrir Configurações",
+                onPress: () => {
+                  Linking.openSettings();
+                  router.back();
+                }
+              }
+            ],
+            { cancelable: false }
+          );
+        } else {
+          // Usuário apenas negou, pode voltar
+          Alert.alert(
+            "Permissão Negada",
+            "A permissão de câmera é necessária para criar postagens.",
+            [
+              {
+                text: "OK",
+                onPress: () => router.back()
+              }
+            ]
+          );
+        }
+      } else {
+        // Permissão concedida
+        setIsReady(true);
+      }
+    } else {
+      // Já tem permissão
+      setIsReady(true);
+    }
+  };
 
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -74,19 +134,9 @@ export default function CreatePost() {
       );
   };
 
-  if (!permission) {
-    // Camera permissions are still loading.
-    return <View />;
-  }
-
-  if (!permission.granted) {
-    // Camera permissions are not granted yet.
-    return (
-      <View style={styles.container}>
-        <Text style={{ textAlign: 'center' }}>We need your permission to show the camera</Text>
-        <Button onPress={requestPermission} title="grant permission" />
-      </View>
-    );
+  // Não renderiza nada até ter verificado a permissão
+  if (!isReady) {
+    return <View style={styles.container} />;
   }
 
   return (

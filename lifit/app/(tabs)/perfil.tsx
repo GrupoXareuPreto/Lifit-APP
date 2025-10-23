@@ -2,31 +2,35 @@ import { useUser } from '@/contexts/UserContext';
 import React from 'react';
 import { FlatList, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import SwipeableScreen from '@/components/SwipeableScreen';
 
 export default function Perfil() {
   const { userData } = useUser();
 
   if (!userData) {
     return (
-      <View style={styles.loadingContainer}>
-        <Text>Carregando perfil...</Text>
-      </View>
+      <SwipeableScreen currentScreen="perfil">
+        <View style={styles.loadingContainer}>
+          <Text>Carregando perfil...</Text>
+        </View>
+      </SwipeableScreen>
     );
   }
 
   const eventosPostadosCount = (userData.eventosCriados?.length || 0) + (userData.postagens?.length || 0);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView style={styles.container}>
+    <SwipeableScreen currentScreen="perfil">
+      <SafeAreaView style={styles.safeArea}>
+        <ScrollView style={styles.container}>
         <View style={styles.header}>
             <Image
-              source={require('@/assets/images/AndrePai.jpg')} // Placeholder image
+              source={userData.fotoPerfil ? { uri: userData.fotoPerfil } : require('@/assets/images/AndrePai.jpg')} // Placeholder image
               style={styles.profileImage}
             />
             <View style={styles.headerInfo}>
                 <Text style={styles.name}>{userData.nome}</Text>
-                <Text style={styles.username}>{userData.nomeUsuario}</Text>
+                <Text style={styles.username}>{"@" + userData.nomeUsuario}</Text>
                 <View style={styles.statsContainer}>
                     <View style={styles.stat}>
                         <Text style={styles.statNumber}>{userData.seguidores?.length || 0}</Text>
@@ -53,13 +57,17 @@ export default function Perfil() {
         </View>
 
         <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>Eventos postados</Text>
+          <Text style={styles.sectionTitle}>Eventos Postados</Text>
+        </View>
+
+        <View style={styles.sectionContainer}>
+          <Text style={styles.sectionTitle}>Postagens</Text>
           <FlatList
             data={userData.postagens}
             renderItem={({ item }) => (
               <Image source={{ uri: item.midia }} style={styles.postImage} />
             )}
-            keyExtractor={(item) => item.id.toString()}
+            //keyExtractor={(item) => item.id.toString()}
             numColumns={3}
             contentContainerStyle={styles.postsGrid}
             ListEmptyComponent={<Text style={styles.devText}>Nenhuma postagem encontrada.</Text>}
@@ -68,6 +76,7 @@ export default function Perfil() {
         </View>
       </ScrollView>
     </SafeAreaView>
+    </SwipeableScreen>
   );
 }
 
@@ -157,6 +166,6 @@ const styles = StyleSheet.create({
     postImage: {
         width: '32%',
         aspectRatio: 1,
-        margin: '0.66%',
+        
     },
 });
