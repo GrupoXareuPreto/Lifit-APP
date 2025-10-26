@@ -3,9 +3,9 @@ import { StyleSheet } from "react-native";
 export const styles = StyleSheet.create({
   container: {
     backgroundColor: '#fff',
-    marginBottom: 10,
-    paddingBottom: 10,
-    borderBottomWidth: 1,
+    marginBottom: 0,
+    paddingBottom: 0,
+    borderBottomWidth: 0,
     borderBottomColor: '#eee',
   },
   header: {
@@ -29,6 +29,16 @@ export const styles = StyleSheet.create({
   postImage: {
     width: '100%',
     height: 300, // Altura da imagem
+  },
+  descriptionContainer: {
+    paddingHorizontal: 15,
+    paddingTop: 10,
+    paddingBottom: 5,
+  },
+  descriptionText: {
+    fontSize: 14,
+    color: '#333',
+    lineHeight: 20,
   },
   actionBar: {
     flexDirection: 'row',

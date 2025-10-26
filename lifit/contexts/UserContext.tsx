@@ -1,4 +1,4 @@
-import React, { createContext, ReactNode, useContext, useState } from 'react';
+import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface Post {
@@ -46,6 +46,25 @@ const UserContext = createContext<UserContextType | null>(null);
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [userData, setUserData] = useState<User | null>(null);
   const [token, setTokenState] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Carregar token do AsyncStorage ao iniciar
+  useEffect(() => {
+    const loadToken = async () => {
+      try {
+        const storedToken = await AsyncStorage.getItem('@lifit:token');
+        if (storedToken) {
+          setTokenState(storedToken);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar token:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadToken();
+  }, []);
 
   const setToken = async (newToken: string | null) => {
     setTokenState(newToken);

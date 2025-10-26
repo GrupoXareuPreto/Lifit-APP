@@ -13,6 +13,9 @@ api.interceptors.request.use(
         const token = await AsyncStorage.getItem('@lifit:token');
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
+            console.log('Token adicionado à requisição:', token.substring(0, 20) + '...');
+        } else {
+            console.log('Nenhum token encontrado no AsyncStorage');
         }
         return config;
     },

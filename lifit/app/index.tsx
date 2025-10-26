@@ -64,12 +64,25 @@ export default function Index(){
         });
     }
 
+    function handleTestLogin2(){
+        handleLogin({
+            nomeUsuarioEmail: "teste$@gmail.com",
+            senha: "teste4"
+        });
+    }
     
     return(
         <SafeAreaView style={styles.page}>
                             <TouchableOpacity 
                                 onPress={handleTestLogin}
                                 style={{ position: 'absolute', top: 40, right: 10, backgroundColor: '#FF6B6B', padding: 10, borderRadius: 5, zIndex: 999 }}
+                            >
+                                <Ionicons name="flask" size={20} color="white" />
+                            </TouchableOpacity>
+
+                            <TouchableOpacity 
+                                onPress={handleTestLogin2}
+                                style={{ position: 'absolute', top: 90, right: 10, backgroundColor: '#2326ffff', padding: 10, borderRadius: 5, zIndex: 999 }}
                             >
                                 <Ionicons name="flask" size={20} color="white" />
                             </TouchableOpacity>

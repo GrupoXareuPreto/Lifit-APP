@@ -58,38 +58,61 @@ export default function PostForm() {
     const uploadImage = async (uri: string) => {
         console.log('Configuração do Cloudinary:', cloudinaryConfig);
         const cld = new Cloudinary({
-        cloud: { 
-            cloudName: cloudinaryConfig.cloudName,
-            apiKey: cloudinaryConfig.apiKey,
-            apiSecret: cloudinaryConfig.apiSecret
-        },
-        url: { 
-            secure: true
-        }
-    });
+            cloud: { 
+                cloudName: cloudinaryConfig.cloudName,
+                apiKey: cloudinaryConfig.apiKey,
+                apiSecret: cloudinaryConfig.apiSecret
+            },
+            url: { 
+                secure: true
+            }
+        });
 
-    const options = {
-        upload_preset: 'TesteLifit',
-        unsigned: true,
-    }
+        const options = {
+            upload_preset: 'TesteLifit',
+            unsigned: true,
+        }
 
         try {
             const response = await upload(cld, {
-                file: previewUri , 
+                file: previewUri, 
                 options: options, 
-                callback: (error: any, response: any) => {
-                    console.log("erro", error)
-                    console.log("response", response)
+                callback: async (error: any, uploadResponse: any) => {
+                    if (error) {
+                        console.log("Erro no upload:", error);
+                        Alert.alert("Erro", "Falha ao fazer upload da imagem.");
+                        return;
+                    }
+                    
+                    console.log("Upload bem-sucedido:", uploadResponse);
+                    
+                    if (uploadResponse?.secure_url) {
+                        // Enviar postagem para a API
+                        try {
+                            const postData = {
+                                midia: uploadResponse.secure_url,
+                                titulo: title,
+                                descricao: description
+                            };
+
+                            console.log("Enviando postagem para API:", postData);
+                            const apiResponse = await api.post('postagens', postData);
+                            
+                            if (apiResponse.status === 201 || apiResponse.status === 200) {
+                                Alert.alert("Sucesso", "Postagem criada com sucesso!");
+                                router.replace("/(tabs)");
+                            } else {
+                                Alert.alert("Erro", "Não foi possível criar a postagem.");
+                            }
+                        } catch (apiError: any) {
+                            console.error("Erro ao enviar postagem:", apiError);
+                            console.error("Status:", apiError.response?.status);
+                            console.error("Mensagem:", apiError.response?.data);
+                            Alert.alert("Erro", "Ocorreu um erro ao criar a postagem.");
+                        }
+                    }
                 }    
-       })
-            // const data = await response.json();
-            // if (response.ok) {
-            //     return data.secure_url;
-            // } else {
-            //     console.error('Erro na resposta do Cloudinary:', data);
-            //     Alert.alert("Erro", `Ocorreu um erro no upload: ${data.error.message}`);
-            //     return null;
-            // }
+            });
         } catch (error) {
             console.error('Erro detalhado ao fazer upload da imagem:', error);
             Alert.alert("Erro", "Ocorreu um erro de rede ao fazer upload da imagem.");
@@ -98,7 +121,8 @@ export default function PostForm() {
     };
 
     const handlePost = async () => {
-    console.log("previewUri", previewUri)
+        console.log("previewUri", previewUri)
+        
         if (!userData) {
             Alert.alert("Erro", "Você precisa estar logado para postar.");
             return;
@@ -109,42 +133,13 @@ export default function PostForm() {
             return;
         }
 
-        let imageUrl = "https://tse1.mm.bing.net/th/id/OIP.9Ks3otCnYxLp9XUmxruyQgHaD7?rs=1&pid=ImgDetMain&o=7&rm=3";
-        if (resolvedUri) {
-            const uploadedUrl = await uploadImage(resolvedUri);
-            if (uploadedUrl) {
-                imageUrl = uploadedUrl;
-            } else {
-                return; 
-            }
+        if (!resolvedUri) {
+            Alert.alert("Erro", "Por favor, selecione uma imagem.");
+            return;
         }
 
-        const postData = {
-            titulo: title,
-            midia: imageUrl,
-            autor: {
-                id: userData.id,
-                nome: userData.nome,
-                biografia: userData.biografia,
-                email: userData.email,
-                senha: userData.senha,
-                nomeUsuario: userData.nomeUsuario
-            },
-            descricao: description
-        };
-
-        try {
-            const response = await api.post('postagem', postData);
-            if (response.status === 201 || response.status === 200) {
-                Alert.alert("Sucesso", "Postagem criada com sucesso!");
-                router.replace("/(tabs)");
-            } else {
-                Alert.alert("Erro", "Não foi possível criar a postagem.");
-            }
-        } catch (error) {
-            console.error(error);
-            Alert.alert("Erro", "Ocorreu um erro ao criar a postagem.");
-        }
+        // Faz upload da imagem e envia o post
+        await uploadImage(resolvedUri);
     };
 
     return (

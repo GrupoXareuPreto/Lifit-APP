@@ -23,6 +23,7 @@ interface Post {
   userName: string;
   userHandle: string;
   postImageUrl: string;
+  description?: string;
   likes: number;
   comments: number;
   shares: number;
@@ -78,6 +79,13 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
 
       {/* Imagem do Post */}
       <Image source={{ uri: post.postImageUrl }} style={styles.postImage} />
+
+      {/* Descrição do Post */}
+      {post.description && (
+        <View style={styles.descriptionContainer}>
+          <Text style={styles.descriptionText}>{post.description}</Text>
+        </View>
+      )}
 
       {/* Barra de Ações */}
       <View style={styles.actionBar}>
