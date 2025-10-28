@@ -4,4 +4,4 @@
 <ul>npm install</ul>
 <ul>npm install expo </ul>
 <ul>npm install axios</ul>
-<ul>npx expo install react-native-toast-message expo-camera expo-image-picker cloudinary nanoid</ul>
+<ul>npx expo install react-native-toast-message expo-camera expo-image-picker cloudinary nanoid react-native-gifted-chat</ul>
