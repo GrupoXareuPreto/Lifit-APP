@@ -100,7 +100,7 @@ export default function Index(){
                                     <Ionicons name={senhaVisivel ? "eye" : "eye-off"} size={24} color="gray" />
                                 </TouchableOpacity>
                             </View>
-                            <Button title="Esqueci minha senha" backgroundColor="#90E05E" textColor="#262626" onPress={() => Alert.alert("Funcionalidade não implementada")}/>
+                            {/* <Button title="Esqueci minha senha" backgroundColor="#90E05E" textColor="#262626" onPress={() => Alert.alert("Funcionalidade não implementada")}/> */}
 
                             <View style={[styles.container, {marginTop: 50, marginBottom: -30}]}>
                                     <Button title="Login" onPress={() => handleLogin()} textColor="#FFFFFF"/>
