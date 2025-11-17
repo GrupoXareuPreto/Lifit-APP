@@ -1,20 +1,84 @@
 import { useUser } from '@/contexts/UserContext';
-import React from 'react';
-import { FlatList, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { FlatList, Image, ScrollView, StyleSheet, Text, View, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import SwipeableScreen from '@/components/SwipeableScreen';
 import { Ionicons } from '@expo/vector-icons';
 import Icon from '@expo/vector-icons/Feather';
+import { useRouter } from 'expo-router';
+import api from '@/config/axiosConfig';
+
+interface Meta {
+  id: string;
+  nome: string;
+  publica: boolean;
+  status: 'PENDENTE' | 'CONCLUIDA';
+  dataFim: string;
+}
 
 export default function Perfil() {
   const { userData } = useUser();
+  const router = useRouter();
+  const [metas, setMetas] = useState<Meta[]>([]);
+  const [loadingMetas, setLoadingMetas] = useState(true);
+  const [updatingMetaId, setUpdatingMetaId] = useState<string | null>(null);
 
-  {/* Metas padrão só para exibir algo, como um pavão*/}
-  const metas = [
-    { id: '1', titulo: '120kg 💪🏼', data: '12 de Novembro de 2025', feita: true },
-    { id: '2', titulo: 'Ganhar no Fut do fim do Ano', data: '17 de Janeiro de 2025', feita: false },
-    { id: '3', titulo: 'Zerar academia de casa', data: '06 de Setembro de 2024', feita: true },
-  ];
+  useEffect(() => {
+    buscarMetas();
+  }, []);
+
+  const buscarMetas = async () => {
+    try {
+      setLoadingMetas(true);
+      const response = await api.get('/meta/me');
+      setMetas(response.data);
+    } catch (error) {
+      console.error('Erro ao buscar metas:', error);
+    } finally {
+      setLoadingMetas(false);
+    }
+  };
+
+  const formatarData = (dataISO: string) => {
+    const data = new Date(dataISO);
+    return data.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+  };
+
+  const formatarDataAPI = (dataISO: string) => {
+    const data = new Date(dataISO);
+    const ano = data.getFullYear();
+    const mes = String(data.getMonth() + 1).padStart(2, '0');
+    const dia = String(data.getDate()).padStart(2, '0');
+    return `${ano}-${mes}-${dia}`;
+  };
+
+  const alternarStatusMeta = async (meta: Meta) => {
+    try {
+      setUpdatingMetaId(meta.id);
+      const novoStatus = meta.status === 'CONCLUIDA' ? 'PENDENTE' : 'CONCLUIDA';
+      
+      const body = {
+        nome: meta.nome,
+        status: novoStatus,
+        dataFim: formatarDataAPI(meta.dataFim),
+      };
+
+      await api.put(`/meta/${meta.id}`, body);
+      
+      // Atualizar o estado local
+      setMetas(prevMetas => 
+        prevMetas.map(m => 
+          m.id === meta.id ? { ...m, status: novoStatus } : m
+        )
+      );
+    } catch (error) {
+      console.error('Erro ao alternar status da meta:', error);
+    } finally {
+      setUpdatingMetaId(null);
+    }
+  };
+
+  const metasExibidas = metas.slice(0, 3);
 
   {/* Eventos padrão só para exibir algo, como um pavão*/}
   const eventos = [
@@ -60,7 +124,7 @@ export default function Perfil() {
                     </View>
                     <View style={styles.stat}>
                         <Text style={styles.statNumber}>{eventosPostadosCount}</Text>
-                        <Text style={styles.statLabel}>Eventos postados</Text>
+                        <Text style={styles.statLabel}>Posts</Text>
                     </View>
                 </View>
             </View>
@@ -73,21 +137,39 @@ export default function Perfil() {
 
         {/* Metas */}
         <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>Metas</Text>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Metas · {metas.length}</Text>
+            <TouchableOpacity onPress={() => router.push('/metas')}>
+              <Ionicons name="chevron-forward" size={24} color="#666" />
+            </TouchableOpacity>
+          </View>
 
-          {metas.map((meta) => (
-            <View key={meta.id} style={styles.metaItem}>
-              <View>
-                <Text style={styles.metaTitle}>{meta.titulo}</Text>
-                <Text style={styles.metaDate}>{meta.data}</Text>
+          {loadingMetas ? (
+            <ActivityIndicator size="small" color="#4CD964" style={{ marginTop: 10 }} />
+          ) : metasExibidas.length > 0 ? (
+            metasExibidas.map((meta, index) => (
+              <View key={index} style={styles.metaItem}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.metaTitle}>{meta.nome}</Text>
+                  <Text style={styles.metaDate}>até {formatarData(meta.dataFim)}</Text>
+                </View>
+                <TouchableOpacity 
+                  onPress={() => alternarStatusMeta(meta)}
+                  disabled={updatingMetaId === meta.id}
+                >
+                  {updatingMetaId === meta.id ? (
+                    <ActivityIndicator size="small" color="#4CD964" />
+                  ) : meta.status === 'CONCLUIDA' ? (
+                    <Ionicons name='checkmark-circle' size={33} color="#4CD964" />
+                  ) : (
+                    <Ionicons name="ellipse-outline" size={33} color="#ccc" />
+                  )}
+                </TouchableOpacity>
               </View>
-              {meta.feita ? (
-                <Ionicons name='checkmark-circle' size={33} color="#4CD964" />
-              ) : (
-                <Ionicons name="ellipse-outline" size={33} color="#ccc" />
-              )}
-            </View>
-            ))}
+            ))
+          ) : (
+            <Text style={styles.devText}>Nenhuma meta encontrada.</Text>
+          )}
         </View>
 
         {/* Eventos Postados */}
@@ -205,6 +287,12 @@ const styles = StyleSheet.create({
         padding: 20,
         borderBottomWidth: 1,
         borderBottomColor: '#eee',
+    },
+    sectionHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 10,
     },
     devContainer: {
         alignItems: 'center',
