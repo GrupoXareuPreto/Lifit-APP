@@ -26,30 +26,67 @@ export default function Index(){
                 senha: senha 
             }
             
+            console.log('1. Tentando fazer login com:', dadosLogin.nomeUsuarioEmail);
             // 1. Faz login e recebe o token
             const loginResponse = await api.post('auth/login', dadosLogin)
+            console.log('2. Login response status:', loginResponse.status);
+            console.log('2.1 Response data:', loginResponse.data);
 
             if(loginResponse.status === 200 && loginResponse.data.token){
                 const receivedToken = loginResponse.data.token;
+                console.log('3. Token recebido:', receivedToken.substring(0, 30) + '...');
                 
                 // 2. Salva o token
                 await setToken(receivedToken);
+                console.log('4. Token salvo no AsyncStorage');
                 
-                // 3. Busca os dados do usuário usando o token
-                const userResponse = await api.get('usuario/me');
+                // Aguarda um pouco para garantir que o AsyncStorage salvou
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                // 3. Decodifica o token para extrair o email
+                const tokenParts = receivedToken.split('.');
+                const payload = JSON.parse(atob(tokenParts[1]));
+                const userEmail = payload.sub;
+                console.log('5. Email extraído do token:', userEmail);
+                
+                // 4. Busca os dados do usuário pelo email usando endpoint público
+                console.log('6. Buscando dados do usuário pelo email...');
+                const { apiAZURE } = await import('@/config/cloudinaryConfig');
+                const userResponse = await fetch(`${apiAZURE}usuario/email/${encodeURIComponent(userEmail)}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+                console.log('7. User response status:', userResponse.status);
                 
                 if(userResponse.status === 200){
-                    setUserData(userResponse.data);
+                    const userData = await userResponse.json();
+                    console.log('8. Dados do usuário recebidos:', userData.nome);
+                    setUserData(userData);
                     router.replace("/(tabs)");
+                } else if(userResponse.status === 404) {
+                    console.error('Usuário não encontrado no banco de dados');
+                    Alert.alert("Erro", "Usuário não encontrado. Por favor, crie uma conta primeiro.")
                 } else {
+                    const errorText = await userResponse.text();
+                    console.error('Erro ao buscar usuário:', errorText);
                     Alert.alert("Erro", "Não foi possível carregar os dados do usuário")
                 }
             } else {
                 Alert.alert("Erro", "Dados inválidos")
             }
         } catch (error: any) {
+            console.error('ERRO DETALHADO:', error);
+            console.error('Status do erro:', error.response?.status);
+            console.error('Dados do erro:', error.response?.data);
+            console.error('Config da requisição:', error.config?.url);
+            console.error('Headers da requisição:', error.config?.headers);
+            
             if(error.response?.status === 404 || error.response?.status === 401){
                 Alert.alert("Erro", "Dados inválidos")
+            } else if(error.response?.status === 403){
+                Alert.alert("Erro", `Acesso negado (403). URL: ${error.config?.url}`)
             } else {
                 console.error(error)
                 Alert.alert("Erro", "Não foi possível fazer o login.")

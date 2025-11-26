@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, RefreshControl, StatusBar, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PostCard from '../../components/postCard';
+import EventCard from '../../components/eventCard';
 import SwipeableScreen from '@/components/SwipeableScreen';
 import api from '@/config/axiosConfig';
 
@@ -22,14 +23,38 @@ interface PostagemFeed {
   numCompartilhamentos: number;
 }
 
-interface FeedResponse {
-  postagens: PostagemFeed[];
-  nextCursor: string | null;
-  hasMore: boolean;
+interface Participante {
+  id: number;
+  nome: string;
+  nomeUsuario: string;
+  fotoPerfil: string;
+}
+
+interface EventoFeed {
+  id: number;
+  titulo: string;
+  descricao: string;
+  localizacao: string;
+  dataInicio: string;
+  dataFim: string;
+  autor: Autor;
+  midia: string;
+  numCurtidas: number;
+  numComentarios: number;
+  numCompartilhamentos: number;
+  numParticipantes: number;
+  participantes: Participante[];
+  usuarioConfirmado: boolean;
+}
+
+interface ItemFeed {
+  tipo: 'POSTAGEM' | 'EVENTO';
+  postagem: PostagemFeed | null;
+  evento: EventoFeed | null;
 }
 
 const FeedScreen = () => {
-  const [posts, setPosts] = useState<PostagemFeed[]>([]);
+  const [feedItems, setFeedItems] = useState<ItemFeed[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -76,17 +101,16 @@ const FeedScreen = () => {
         setLoading(true);
       }
 
-      console.log('Carregando feed...');
-      const response = await api.get<FeedResponse>('/postagens/feed', {
+      console.log('Carregando feed unificado...');
+      const response = await api.get<ItemFeed[]>('/feed/unificado', {
         params: {
-          tamanhoPagina: 10,
+          tamanhoPagina: 15,
         },
       });
 
-      console.log('Feed carregado com sucesso:', response.data.postagens.length, 'posts');
-      setPosts(response.data.postagens);
-      setNextCursor(response.data.nextCursor);
-      setHasMore(response.data.hasMore);
+      console.log('Feed carregado com sucesso:', response.data.length, 'items');
+      setFeedItems(response.data);
+      setHasMore(response.data.length >= 15);
     } catch (error: any) {
       console.error('Erro ao carregar feed:', error);
       console.error('Status:', error.response?.status);
@@ -105,31 +129,35 @@ const FeedScreen = () => {
     }
   };
 
-  // Carregar mais posts
+  // Carregar mais items
   const loadMorePosts = async () => {
-    if (!hasMore || loadingMore || !nextCursor) return;
+    if (!hasMore || loadingMore) return;
 
     try {
       setLoadingMore(true);
 
-      const response = await api.get<FeedResponse>('/postagens/feed', {
+      // Encontra a última postagem (não evento) para usar como cursor
+      let ultimoCursorValue = null;
+      for (let i = feedItems.length - 1; i >= 0; i--) {
+        if (feedItems[i].tipo === 'POSTAGEM' && feedItems[i].postagem?.dataPublicacao) {
+          ultimoCursorValue = feedItems[i].postagem?.dataPublicacao;
+          break;
+        }
+      }
+
+      const response = await api.get<ItemFeed[]>('/feed/unificado', {
         params: {
-          ultimoCursor: nextCursor,
-          tamanhoPagina: 10,
+          ultimoCursor: ultimoCursorValue,
+          tamanhoPagina: 15,
         },
       });
 
-      // Adiciona novos posts ao array existente (evita duplicatas)
-      const newPosts = response.data.postagens.filter(
-        (newPost) => !posts.some((existingPost) => 
-          existingPost.dataPublicacao === newPost.dataPublicacao && 
-          existingPost.autor.nomeUsuario === newPost.autor.nomeUsuario
-        )
-      );
-
-      setPosts([...posts, ...newPosts]);
-      setNextCursor(response.data.nextCursor);
-      setHasMore(response.data.hasMore);
+      if (response.data.length > 0) {
+        setFeedItems([...feedItems, ...response.data]);
+        setHasMore(response.data.length >= 15);
+      } else {
+        setHasMore(false);
+      }
     } catch (error: any) {
       console.error('Erro ao carregar mais posts:', error);
       Alert.alert(
@@ -155,10 +183,31 @@ const FeedScreen = () => {
     loadFeed();
   }, []);
 
-  // Renderizar cada post
-  const renderPost = ({ item }: { item: PostagemFeed }) => (
-    <PostCard post={transformPost(item)} />
-  );
+  // Callback para quando usuário confirma/desconfirma presença
+  const handlePresencaToggle = (eventoId: number, novoEstado: boolean) => {
+    setFeedItems(prevItems => 
+      prevItems.map(item => {
+        if (item.tipo === 'EVENTO' && item.evento?.id === eventoId) {
+          return {
+            ...item,
+            evento: item.evento ? { ...item.evento, usuarioConfirmado: novoEstado } : null
+          };
+        }
+        return item;
+      })
+    );
+  };
+
+  // Renderizar cada item do feed
+  const renderPost = ({ item }: { item: ItemFeed }) => {
+    if (item.tipo === 'EVENTO' && item.evento) {
+      return <EventCard evento={item.evento} onPresencaToggle={handlePresencaToggle} />;
+    }
+    if (item.tipo === 'POSTAGEM' && item.postagem) {
+      return <PostCard post={transformPost(item.postagem)} />;
+    }
+    return null;
+  };
 
   // Renderizar loading no final da lista
   const renderFooter = () => {
@@ -202,9 +251,13 @@ const FeedScreen = () => {
         <StatusBar barStyle="dark-content" />
         
         <FlatList
-          data={posts}
+          data={feedItems}
           renderItem={renderPost}
-          keyExtractor={(item, index) => `${item.dataPublicacao}-${item.autor.nomeUsuario}-${index}`}
+          keyExtractor={(item, index) => 
+            item.tipo === 'EVENTO' 
+              ? `evento-${item.evento?.id}-${index}` 
+              : `post-${item.postagem?.dataPublicacao}-${index}`
+          }
           showsVerticalScrollIndicator={false}
           onEndReached={loadMorePosts}
           onEndReachedThreshold={0.5}

@@ -3,7 +3,7 @@ import { CameraView, useCameraPermissions, type CameraType } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
-import { Alert, Image, Linking, Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, Linking, Platform, StyleSheet, TouchableOpacity, View, Modal, Text } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as FileSystem from 'expo-file-system';
 
@@ -13,6 +13,7 @@ export default function CreatePost() {
   const [permission, requestPermission] = useCameraPermissions();
   const [image, setImage] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
   const cameraRef = useRef<CameraView>(null);
 
   useEffect(() => {
@@ -117,21 +118,17 @@ export default function CreatePost() {
   }
 
   const handleNext = () => {
-      Alert.alert(
-          "Tipo de Postagem",
-          "Escolha o tipo da sua postagem",
-          [
-        {
-          text: "Postagem",
-          onPress: () => router.push(`/postForm?imageUri=${encodeURIComponent(image ?? '')}` as any),
-        },
-              {
-                  text: "Evento",
-                  onPress: () => Alert.alert("Em desenvolvimento", "Esta funcionalidade ainda está em desenvolvimento."),
-                  style: "cancel"
-              }
-          ]
-      );
+    setModalVisible(true);
+  };
+
+  const handlePostagem = () => {
+    setModalVisible(false);
+    router.push(`/postForm?imageUri=${encodeURIComponent(image ?? '')}` as any);
+  };
+
+  const handleEvento = () => {
+    setModalVisible(false);
+    router.push(`/criarEvento?imageUri=${encodeURIComponent(image ?? '')}` as any);
   };
 
   // Não renderiza nada até ter verificado a permissão
@@ -164,6 +161,42 @@ export default function CreatePost() {
           <Ionicons name="camera-reverse" size={24} color="white" />
         </TouchableOpacity>
       </View>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Escolha o tipo de postagem</Text>
+            
+            <TouchableOpacity style={styles.modalOption} onPress={handlePostagem}>
+              <View style={styles.iconContainer}>
+                <Ionicons name="image" size={32} color="#2B3C45" />
+              </View>
+              <Text style={styles.optionText}>Postagem</Text>
+              <Text style={styles.optionDescription}>Compartilhe fotos e momentos</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.modalOption} onPress={handleEvento}>
+              <View style={styles.iconContainer}>
+                <Ionicons name="calendar" size={32} color="#2B3C45" />
+              </View>
+              <Text style={styles.optionText}>Evento</Text>
+              <Text style={styles.optionDescription}>Crie um evento para a comunidade</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.cancelButton} 
+              onPress={() => setModalVisible(false)}
+            >
+              <Text style={styles.cancelText}>Cancelar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -195,5 +228,62 @@ const styles = StyleSheet.create({
     backgroundColor: '#2B3C45',
     padding: 10,
     borderRadius: 50,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 24,
+    paddingBottom: 40,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#2B3C45',
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  modalOption: {
+    backgroundColor: '#F5F5F5',
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 12,
+    flexDirection: 'column',
+    alignItems: 'center',
+  },
+  iconContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#E8F5E9',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  optionText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#2B3C45',
+    marginBottom: 4,
+  },
+  optionDescription: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+  },
+  cancelButton: {
+    marginTop: 12,
+    padding: 16,
+    alignItems: 'center',
+  },
+  cancelText: {
+    fontSize: 16,
+    color: '#999',
+    fontWeight: '500',
   },
 });
