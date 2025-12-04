@@ -48,11 +48,15 @@ export default function EventoDetalhes() {
   const carregarEvento = async () => {
     try {
       setLoading(true);
+      console.log('Carregando evento ID:', id);
       const response = await api.get(`/evento/${id}`);
+      console.log('Evento carregado com sucesso:', response.data.titulo);
       setEvento(response.data);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao carregar evento:', error);
-      Alert.alert('Erro', 'Não foi possível carregar os detalhes do evento.');
+      console.error('Status:', error.response?.status);
+      console.error('Mensagem:', error.response?.data);
+      Alert.alert('Erro', 'Não foi possível carregar os detalhes do evento. Verifique sua conexão e tente novamente.');
     } finally {
       setLoading(false);
     }

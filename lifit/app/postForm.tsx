@@ -5,7 +5,9 @@ import { useUser } from '@/contexts/UserContext';
 import api from '@/config/axiosConfig';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Alert, Image, StyleSheet, View } from 'react-native';
+import { Alert, Image, StyleSheet, View, Text, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system';
 import { Cloudinary } from "@cloudinary/url-gen";
 import { upload } from 'cloudinary-react-native';
@@ -143,43 +145,126 @@ export default function PostForm() {
     };
 
     return (
-        <View style={styles.container}>
-            {resolvedUri ? (
-                <Image
-                    source={{ uri: resolvedUri }}
-                    style={styles.image}
-                    onError={(e) => console.warn('Falha ao exibir imagem de preview:', e.nativeEvent)}
-                />
-            ) : null}
-            <View style={styles.inputContainer}>
-
-                <Input placeholder="Título" value={title} onChangeText={setTitle} />
-                <Input placeholder="Descrição" value={description} onChangeText={setDescription} />
+        <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => router.back()}>
+                    <Ionicons name="arrow-back" size={24} color="#2B3C45" />
+                </TouchableOpacity>
+                <Text style={styles.headerTitle}>Nova Postagem</Text>
+                <View style={{ width: 24 }} />
             </View>
-            <Button title="Postar" onPress={handlePost} backgroundColor="#2B3C45" textColor="#FFFFFF" />
-            <Button title="Voltar" onPress={() => router.back()} backgroundColor="#2B3C45" textColor="#FFFFFF" />
-        </View>
+
+            <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+                {resolvedUri && (
+                    <Image 
+                        source={{ uri: resolvedUri }} 
+                        style={styles.image}
+                        resizeMode="cover"
+                    />
+                )}
+
+                <View style={styles.form}>
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Título *</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Título da postagem"
+                            value={title}
+                            onChangeText={setTitle}
+                            maxLength={100}
+                        />
+                    </View>
+
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Descrição</Text>
+                        <TextInput
+                            style={[styles.input, styles.textArea]}
+                            placeholder="Descreva sua postagem..."
+                            value={description}
+                            onChangeText={setDescription}
+                            multiline
+                            numberOfLines={4}
+                            textAlignVertical="top"
+                        />
+                    </View>
+                </View>
+            </ScrollView>
+
+            <View style={styles.footer}>
+                <TouchableOpacity
+                    style={styles.publishButton}
+                    onPress={handlePost}
+                >
+                    <Text style={styles.publishButtonText}>Publicar</Text>
+                </TouchableOpacity>
+            </View>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        backgroundColor: 'white',
+    },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
         alignItems: 'center',
-        justifyContent: 'center',
-        padding: 20,
-        backgroundColor: '#f0f2f5',
-        gap: 16,
+        padding: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: '#E0E0E0',
+    },
+    headerTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#2B3C45',
+    },
+    content: {
+        flex: 1,
     },
     image: {
         width: '100%',
         height: 300,
-        borderRadius: 10,
-        marginBottom: 20,
-        
+        backgroundColor: '#F5F5F5',
+    },
+    form: {
+        padding: 16,
     },
     inputContainer: {
-        width: '100%',
-        gap: 16,
-    }
+        marginBottom: 20,
+    },
+    label: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#2B3C45',
+        marginBottom: 8,
+    },
+    input: {
+        backgroundColor: '#F5F5F5',
+        borderRadius: 8,
+        padding: 12,
+        fontSize: 16,
+        color: '#2B3C45',
+    },
+    textArea: {
+        height: 100,
+        paddingTop: 12,
+    },
+    footer: {
+        padding: 16,
+        borderTopWidth: 1,
+        borderTopColor: '#E0E0E0',
+    },
+    publishButton: {
+        backgroundColor: '#4CAF50',
+        borderRadius: 8,
+        padding: 16,
+        alignItems: 'center',
+    },
+    publishButtonText: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
 });

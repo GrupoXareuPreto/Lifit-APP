@@ -1,5 +1,6 @@
 import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { setApiToken } from '@/config/axiosConfig';
 
 interface Post {
     id: number;
@@ -55,6 +56,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         const storedToken = await AsyncStorage.getItem('@lifit:token');
         if (storedToken) {
           setTokenState(storedToken);
+          setApiToken(storedToken);
+          console.log('UserContext - Token carregado do AsyncStorage no início');
         }
       } catch (error) {
         console.error('Erro ao carregar token:', error);
@@ -67,17 +70,32 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const setToken = async (newToken: string | null) => {
+    console.log('UserContext - setToken chamado com:', newToken ? 'token válido' : 'null');
     setTokenState(newToken);
+    
+    // Definir token em memória para o axios
+    setApiToken(newToken);
+    
     if (newToken) {
-      await AsyncStorage.setItem('@lifit:token', newToken);
+      try {
+        await AsyncStorage.setItem('@lifit:token', newToken);
+        console.log('UserContext - Token salvo no AsyncStorage');
+        // Verificar se realmente salvou
+        const verificar = await AsyncStorage.getItem('@lifit:token');
+        console.log('UserContext - Verificação: token existe?', verificar ? 'SIM' : 'NÃO');
+      } catch (error) {
+        console.error('UserContext - Erro ao salvar token:', error);
+      }
     } else {
       await AsyncStorage.removeItem('@lifit:token');
+      console.log('UserContext - Token removido do AsyncStorage');
     }
   };
 
   const logout = async () => {
     setUserData(null);
     setTokenState(null);
+    setApiToken(null);
     await AsyncStorage.removeItem('@lifit:token');
   };
 

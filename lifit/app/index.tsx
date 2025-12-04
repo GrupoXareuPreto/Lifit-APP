@@ -103,7 +103,7 @@ export default function Index(){
 
     function handleTestLogin2(){
         handleLogin({
-            nomeUsuarioEmail: "teste$@gmail.com",
+            nomeUsuarioEmail: "teste4@gmail.com",
             senha: "teste4"
         });
     }

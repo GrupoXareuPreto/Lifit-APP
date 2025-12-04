@@ -137,30 +137,34 @@ export default function CreatePost() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top','bottom']}>
+    <View style={styles.container}>
+      <SafeAreaView style={styles.safeTop} edges={['top']}>
+        {image && (
+          <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
+            <Ionicons name="arrow-forward" size={24} color="white" />
+          </TouchableOpacity>
+        )}
+      </SafeAreaView>
+
       {image ? (
         <Image source={{ uri: image }} style={styles.camera} />
       ) : (
         <CameraView style={styles.camera} facing={facing} ref={cameraRef} />
       )}
 
-      {image && (
-        <TouchableOpacity style={[styles.nextButton, { top: insets.top + 12 }]} onPress={handleNext}>
-          <Ionicons name="arrow-forward" size={24} color="white" />
-        </TouchableOpacity>
-      )}
-
-      <View style={[styles.buttonContainer, { paddingBottom: insets.bottom + 12 }]}>
-        <TouchableOpacity style={styles.button} onPress={pickImage}>
-          <Ionicons name="images" size={24} color="white" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={takePicture}>
-          <Ionicons name="camera" size={24} color="white" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={toggleCameraFacing}>
-          <Ionicons name="camera-reverse" size={24} color="white" />
-        </TouchableOpacity>
-      </View>
+      <SafeAreaView style={styles.safeBottom} edges={['bottom']}>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={styles.button} onPress={pickImage}>
+            <Ionicons name="images" size={24} color="white" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={takePicture}>
+            <Ionicons name="camera" size={24} color="white" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={toggleCameraFacing}>
+            <Ionicons name="camera-reverse" size={24} color="white" />
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
 
       <Modal
         animationType="slide"
@@ -197,20 +201,32 @@ export default function CreatePost() {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: 'black',
+  },
+  safeTop: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    zIndex: 10,
+  },
+  safeBottom: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'transparent',
   },
   camera: {
     flex: 1,
   },
   buttonContainer: {
-    position: 'absolute',
-    bottom: 0,
     flexDirection: 'row',
     justifyContent: 'space-around',
     width: '100%',
@@ -222,12 +238,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   nextButton: {
-    position: 'absolute',
-    top: 40,
-    right: 20,
-    backgroundColor: '#2B3C45',
-    padding: 10,
+    backgroundColor: '#4CAF50',
+    padding: 12,
     borderRadius: 50,
+    margin: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   modalOverlay: {
     flex: 1,
@@ -268,7 +287,7 @@ const styles = StyleSheet.create({
   optionText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#2B3C45',
+    color: '#4CD964',
     marginBottom: 4,
   },
   optionDescription: {

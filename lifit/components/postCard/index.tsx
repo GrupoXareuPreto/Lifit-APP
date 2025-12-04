@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { styles } from "./style";
 import Toast from 'react-native-toast-message';
+import api from '@/config/axiosConfig';
+import CommentsBottomSheet from '../CommentsBottomSheet';
 
 // Função para formatar números grandes (ex: 23000 -> 23 mil)
 const formatNumber = (num: number) => {
@@ -19,6 +22,9 @@ interface PostEvent {
 }
 
 interface Post {
+  id: number;
+  idPostagem: number;
+  usuarioId: number;
   avatarUrl: string;
   userName: string;
   userHandle: string;
@@ -28,33 +34,63 @@ interface Post {
   comments: number;
   shares: number;
   timestamp: string;
+  usuarioCurtiu: boolean;
   event?: PostEvent;
-
 }
 
 interface PostCardProps {
   post: Post;
+  onUpdate?: () => void;
 }
 
-const PostCard: React.FC<PostCardProps> = ({ post }) => {
+const PostCard: React.FC<PostCardProps> = ({ post, onUpdate }) => {
+  const router = useRouter();
+  const [liked, setLiked] = useState(post.usuarioCurtiu);
+  const [likeCount, setLikeCount] = useState(post.likes);
+  const [commentsVisible, setCommentsVisible] = useState(false);
 
-  // Funções para ações
-  const handleLike = () => {
-    Toast.show({
-      type: 'success',
-      text1: 'Você curtiu a postagem!',
-      position: 'top',
-      visibilityTime: 2000,
-    });
+  const handleUserProfile = () => {
+    console.log('Navegando para perfil - usuarioId:', post.usuarioId, 'userHandle:', post.userHandle);
+    router.push(`/userProfile/${post.usuarioId}?nomeUsuario=${encodeURIComponent(post.userHandle.replace('@', ''))}` as any);
   };
 
+  // Função para curtir/descurtir
+  const handleLike = async () => {
+    try {
+      if (liked) {
+        // Descurtir
+        await api.delete(`/curtida/postagem/${post.idPostagem}`);
+        setLiked(false);
+        setLikeCount(prev => prev - 1);
+      } else {
+        // Curtir
+        await api.post('/curtida', { postagemId: post.idPostagem });
+        setLiked(true);
+        setLikeCount(prev => prev + 1);
+      }
+      
+      // Recarrega o feed se callback fornecido
+      if (onUpdate) {
+        onUpdate();
+      }
+    } catch (error) {
+      console.error('Erro ao curtir/descurtir:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Erro ao processar curtida',
+        position: 'top',
+        visibilityTime: 2000,
+      });
+    }
+  };
   const handleComment = () => {
-    Toast.show({
-      type: 'info',
-      text1: 'Abrindo comentários...',
-      position: 'top',
-      visibilityTime: 2000,
-    });
+    setCommentsVisible(true);
+  };
+
+  const handleCommentAdded = () => {
+    if (onUpdate) {
+      onUpdate();
+    }
   };
 
   const handleShare = () => {
@@ -69,13 +105,13 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
   return (
     <View style={styles.container}>
       {/* Cabeçalho do Post */}
-      <View style={styles.header}>
+      <TouchableOpacity style={styles.header} onPress={handleUserProfile} activeOpacity={0.7}>
         <Image source={{ uri: post.avatarUrl }} style={styles.avatar} />
         <View>
           <Text style={styles.userName}>{post.userName}</Text>
           <Text style={styles.userHandle}>{post.userHandle}</Text>
         </View>
-      </View>
+      </TouchableOpacity>
 
       {/* Imagem do Post */}
       <Image source={{ uri: post.postImageUrl }} style={styles.postImage} />
@@ -90,8 +126,14 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
       {/* Barra de Ações */}
       <View style={styles.actionBar}>
         <TouchableOpacity style={styles.action} onPress={handleLike}>
-          <FontAwesome name="thumbs-o-up" size={20} color="gray" />
-          <Text style={styles.actionText}>{formatNumber(post.likes)}</Text>
+          <FontAwesome 
+            name={liked ? "thumbs-up" : "thumbs-o-up"} 
+            size={20} 
+            color={liked ? "#4CD964" : "gray"} 
+          />
+          <Text style={[styles.actionText, liked && { color: '#4CD964' }]}>
+            {formatNumber(likeCount)}
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.action} onPress={handleComment}>
@@ -120,6 +162,14 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
           </View>
         </View>
       )}
+
+      {/* Bottom Sheet de Comentários */}
+      <CommentsBottomSheet
+        visible={commentsVisible}
+        onClose={() => setCommentsVisible(false)}
+        postagemId={post.idPostagem}
+        onCommentAdded={handleCommentAdded}
+      />
     </View>
   );
 };

@@ -15,6 +15,7 @@ export default function RootLayout() {
             <Stack.Screen name="createLoginPage" />
             <Stack.Screen name="createPost" />
             <Stack.Screen name="postForm" />
+            <Stack.Screen name="userProfile/[id]" />
           </Stack>
         </SafeAreaProvider>
       </UserProvider>

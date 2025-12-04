@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import Toast from 'react-native-toast-message';
 import api from '@/config/axiosConfig';
+import CommentsBottomSheet from '../CommentsBottomSheet';
 
 const formatNumber = (num: number) => {
   if (num >= 1000) {
@@ -39,15 +41,20 @@ interface EventoData {
   numParticipantes: number;
   participantes: Participante[];
   usuarioConfirmado: boolean;
+  usuarioCurtiu: boolean;
 }
 
 interface EventCardProps {
   evento: EventoData;
   onPresencaToggle?: (eventoId: number, confirmado: boolean) => void;
+  onUpdate?: () => void;
 }
 
-const EventCard: React.FC<EventCardProps> = ({ evento, onPresencaToggle }) => {
+const EventCard: React.FC<EventCardProps> = ({ evento, onPresencaToggle, onUpdate }) => {
   const router = useRouter();
+  const [liked, setLiked] = useState(evento.usuarioCurtiu);
+  const [likeCount, setLikeCount] = useState(evento.numCurtidas);
+  const [commentsVisible, setCommentsVisible] = useState(false);
 
   const formatarData = (dataISO: string) => {
     const data = new Date(dataISO);
@@ -85,21 +92,54 @@ const EventCard: React.FC<EventCardProps> = ({ evento, onPresencaToggle }) => {
     }
   };
 
+  const handleLike = async () => {
+    try {
+      if (liked) {
+        await api.delete(`/curtida/evento/${evento.id}`);
+        setLiked(false);
+        setLikeCount(prev => prev - 1);
+      } else {
+        await api.post('/curtida', { eventoId: evento.id });
+        setLiked(true);
+        setLikeCount(prev => prev + 1);
+      }
+      
+      if (onUpdate) {
+        onUpdate();
+      }
+    } catch (error: any) {
+      console.error('Erro ao curtir/descurtir evento:', error);
+      console.error('Response completa:', error.response);
+      Toast.show({
+        type: 'error',
+        text1: 'Erro ao processar curtida',
+        text2: 'Verifique sua conexão e tente novamente',
+        position: 'top',
+        visibilityTime: 2000,
+      });
+    }
+  };
+
+  const handleComment = () => {
+    setCommentsVisible(true);
+  };
+
+  const handleCommentAdded = () => {
+    if (onUpdate) {
+      onUpdate();
+    }
+  };
+
   const handleCardPress = () => {
-    router.push(`/evento/${evento.id}` as any);
+    // Implementar navegação para detalhes do evento
   };
 
   return (
     <View style={styles.container}>
-      {/* Badge EVENTO */}
-      <View style={styles.eventBadge}>
-        <Text style={styles.eventBadgeText}>EVENTO</Text>
-      </View>
-
       {/* Cabeçalho */}
       <View style={styles.header}>
         <Image 
-          source={{ uri: evento.autor.fotoPerfil || 'https://i.imgur.com/Qk9RNAB.png' }} 
+          source={{ uri: evento.autor.fotoPerfil || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(evento.autor.nome) + '&background=4CD964&color=fff&size=200' }} 
           style={styles.avatar} 
         />
         <View>
@@ -123,12 +163,18 @@ const EventCard: React.FC<EventCardProps> = ({ evento, onPresencaToggle }) => {
 
       {/* Barra de Ações */}
       <View style={styles.actionBar}>
-        <TouchableOpacity style={styles.action}>
-          <FontAwesome name="thumbs-o-up" size={20} color="gray" />
-          <Text style={styles.actionText}>{formatNumber(evento.numCurtidas)}</Text>
+        <TouchableOpacity style={styles.action} onPress={handleLike}>
+          <FontAwesome 
+            name={liked ? "thumbs-up" : "thumbs-o-up"} 
+            size={20} 
+            color={liked ? "#4CD964" : "gray"} 
+          />
+          <Text style={[styles.actionText, liked && { color: '#4CD964' }]}>
+            {formatNumber(likeCount)}
+          </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.action}>
+        <TouchableOpacity style={styles.action} onPress={handleComment}>
           <FontAwesome name="comment-o" size={20} color="gray" />
           <Text style={styles.actionText}>{formatNumber(evento.numComentarios)}</Text>
         </TouchableOpacity>
@@ -148,7 +194,7 @@ const EventCard: React.FC<EventCardProps> = ({ evento, onPresencaToggle }) => {
             {evento.participantes.slice(0, 3).map((participante, index) => (
               <Image
                 key={participante.id}
-                source={{ uri: participante.fotoPerfil || 'https://i.imgur.com/Qk9RNAB.png' }}
+                source={{ uri: participante.fotoPerfil || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(participante.nomeUsuario) + '&background=4CD964&color=fff&size=200' }}
                 style={[styles.participanteAvatar, { marginLeft: index > 0 ? -10 : 0 }]}
               />
             ))}
@@ -168,10 +214,20 @@ const EventCard: React.FC<EventCardProps> = ({ evento, onPresencaToggle }) => {
         <Text style={[styles.confirmButtonText, evento.usuarioConfirmado && styles.confirmButtonTextActive]}>
           Presença confirmada
         </Text>
-        {evento.usuarioConfirmado && (
+        {evento.usuarioConfirmado ? (
           <Ionicons name="checkmark-circle" size={20} color="#fff" style={{ marginLeft: 8 }} />
+        ) : (
+          <Ionicons name="close-circle" size={20} color="#999" style={{ marginLeft: 8 }} />
         )}
       </TouchableOpacity>
+
+      {/* Bottom Sheet de Comentários */}
+      <CommentsBottomSheet
+        visible={commentsVisible}
+        onClose={() => setCommentsVisible(false)}
+        eventoId={evento.id}
+        onCommentAdded={handleCommentAdded}
+      />
     </View>
   );
 };

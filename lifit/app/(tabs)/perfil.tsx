@@ -1,6 +1,6 @@
 import { useUser } from '@/contexts/UserContext';
 import React, { useState, useEffect } from 'react';
-import { FlatList, Image, ScrollView, StyleSheet, Text, View, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { FlatList, Image, ScrollView, StyleSheet, Text, View, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import SwipeableScreen from '@/components/SwipeableScreen';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,15 +16,32 @@ interface Meta {
   dataFim: string;
 }
 
+interface Evento {
+  id: number;
+  titulo: string;
+  midia: string;
+  descricao: string;
+  localizacao: string;
+  dataInicio: string;
+  dataFim: string;
+}
+
 export default function Perfil() {
-  const { userData } = useUser();
+  const { userData, logout } = useUser();
   const router = useRouter();
   const [metas, setMetas] = useState<Meta[]>([]);
   const [loadingMetas, setLoadingMetas] = useState(true);
   const [updatingMetaId, setUpdatingMetaId] = useState<string | null>(null);
+  const [eventos, setEventos] = useState<Evento[]>([]);
+  const [loadingEventos, setLoadingEventos] = useState(true);
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [seguidores, setSeguidores] = useState(0);
+  const [seguindo, setSeguindo] = useState(0);
 
   useEffect(() => {
     buscarMetas();
+    buscarEventos();
+    buscarContadores();
   }, []);
 
   const buscarMetas = async () => {
@@ -36,6 +53,30 @@ export default function Perfil() {
       console.error('Erro ao buscar metas:', error);
     } finally {
       setLoadingMetas(false);
+    }
+  };
+
+  const buscarEventos = async () => {
+    try {
+      setLoadingEventos(true);
+      const response = await api.get('/evento/me');
+      setEventos(response.data);
+    } catch (error) {
+      console.error('Erro ao buscar eventos:', error);
+    } finally {
+      setLoadingEventos(false);
+    }
+  };
+
+  const buscarContadores = async () => {
+    try {
+      if (userData?.id) {
+        const response = await api.get(`/seguidor/conta/${userData.id}`);
+        setSeguidores(response.data.seguidores);
+        setSeguindo(response.data.seguindo);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar contadores:', error);
     }
   };
 
@@ -61,6 +102,7 @@ export default function Perfil() {
         nome: meta.nome,
         status: novoStatus,
         dataFim: formatarDataAPI(meta.dataFim),
+        publica: meta.publica,
       };
 
       await api.put(`/meta/${meta.id}`, body);
@@ -78,14 +120,34 @@ export default function Perfil() {
     }
   };
 
-  const metasExibidas = metas.slice(0, 3);
+  const alternarPrivacidadeMeta = async (meta: Meta) => {
+    try {
+      const novaPrivacidade = !meta.publica;
+      
+      const body = {
+        nome: meta.nome,
+        status: meta.status,
+        dataFim: formatarDataAPI(meta.dataFim),
+        publica: novaPrivacidade,
+      };
 
-  {/* Eventos padrão só para exibir algo, como um pavão*/}
-  const eventos = [
-    { id: '1', titulo: 'Treino de Peito', imagem: 'https://imgs.search.brave.com/haOpIIq0F642KfxxzZdTXG2X3Em2bhHFIKYFSbJSYW4/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly93d3cu/emlvYmVyYnJhc2ls/LmNvbS5ici9ibG9n/L3dwLWNvbnRlbnQv/dXBsb2Fkcy8yMDIx/LzEwLzQwMmUwMDRm/LTYxYzgtNDQ1Mi05/ZDQ1LThkMmZjN2Ex/YmY4MS01NDJ4NDEw/LmpwZw' },
-    { id: '2', titulo: 'Corrida na Praia', imagem: 'https://images.unsplash.com/photo-1605296867304-46d5465a13f1' },
-    { id: '3', titulo: 'Aula de Yoga', imagem: 'https://images.unsplash.com/photo-1534367610401-9f5ed68180aa' },
-  ];
+      await api.put(`/meta/${meta.id}`, body);
+      
+      // Atualizar o estado local
+      setMetas(prevMetas => 
+        prevMetas.map(m => 
+          m.id === meta.id ? { ...m, publica: novaPrivacidade } : m
+        )
+      );
+      
+      Alert.alert('Sucesso', `Meta agora é ${novaPrivacidade ? 'pública' : 'privada'}`);
+    } catch (error) {
+      console.error('Erro ao alternar privacidade da meta:', error);
+      Alert.alert('Erro', 'Não foi possível alterar a privacidade da meta');
+    }
+  };
+
+  const metasExibidas = metas.slice(0, 3);
 
 
   if (!userData) {
@@ -109,25 +171,94 @@ export default function Perfil() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
-        <View style={styles.header}>
-            <Image
-              source={userData.fotoPerfil ? { uri: userData.fotoPerfil } : require('@/assets/images/AndrePai.jpg')} // Placeholder image
-              style={styles.profileImage}
-            />
-            <View style={styles.headerInfo}>
-                <Text style={styles.name}>{userData.nome}</Text>
-                <Text style={styles.username}>{"@" + userData.nomeUsuario}</Text>
-                <View style={styles.statsContainer}>
-                    <View style={styles.stat}>
-                        <Text style={styles.statNumber}>{userData.seguidores?.length || 0}</Text>
-                        <Text style={styles.statLabel}>Seguidores</Text>
-                    </View>
-                    <View style={styles.stat}>
-                        <Text style={styles.statNumber}>{eventosPostadosCount}</Text>
-                        <Text style={styles.statLabel}>Posts</Text>
-                    </View>
-                </View>
+        
+        {/* Header com menu de 3 pontos - posicionado absolutamente */}
+        <View style={styles.topBar}>
+          <TouchableOpacity 
+            style={styles.menuButton}
+            onPress={() => setMenuVisible(!menuVisible)}
+          >
+            <Ionicons name="ellipsis-vertical" size={24} color="#000" />
+          </TouchableOpacity>
+          
+          {menuVisible && (
+            <View style={styles.menuDropdown}>
+              <TouchableOpacity 
+                style={styles.menuItem}
+                onPress={() => {
+                  setMenuVisible(false);
+                  router.push('/editarPerfil' as any);
+                }}
+              >
+                <Ionicons name="create-outline" size={20} color="#000" />
+                <Text style={styles.menuText}>Editar Perfil</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.menuItem}
+                onPress={() => {
+                  setMenuVisible(false);
+                  Alert.alert('Configurações', 'Em desenvolvimento');
+                }}
+              >
+                <Ionicons name="settings-outline" size={20} color="#000" />
+                <Text style={styles.menuText}>Configurações</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.menuItem, styles.menuItemLast]}
+                onPress={() => {
+                  setMenuVisible(false);
+                  Alert.alert(
+                    'Sair',
+                    'Tem certeza que deseja sair?',
+                    [
+                      { text: 'Cancelar', style: 'cancel' },
+                      { 
+                        text: 'Sair', 
+                        style: 'destructive',
+                        onPress: () => {
+                          logout();
+                          router.replace('/');
+                        }
+                      }
+                    ]
+                  );
+                }}
+              >
+                <Ionicons name="log-out-outline" size={20} color="#FF3B30" />
+                <Text style={[styles.menuText, styles.menuTextDanger]}>Sair</Text>
+              </TouchableOpacity>
             </View>
+          )}
+        </View>
+
+        {/* Header Perfil */}
+        <View style={styles.header}>
+          <Image
+            source={{ uri: userData.fotoPerfil || `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.nome)}&background=4CD964&color=fff&size=200` }}
+            style={styles.profileImage}
+          />
+          <View style={styles.headerInfo}>
+            <Text style={styles.name}>{userData.nome}</Text>
+            <Text style={styles.username}>{"@" + userData.nomeUsuario}</Text>
+          </View>
+        </View>
+
+        {/* Contadores */}
+        <View style={styles.statsContainer}>
+          <View style={styles.stat}>
+            <Text style={styles.statNumber}>{seguidores}</Text>
+            <Text style={styles.statLabel}>Seguidores</Text>
+          </View>
+          <View style={styles.stat}>
+            <Text style={styles.statNumber}>{seguindo}</Text>
+            <Text style={styles.statLabel}>Seguindo</Text>
+          </View>
+          <View style={styles.stat}>
+            <Text style={styles.statNumber}>{eventos.length}</Text>
+            <Text style={styles.statLabel}>Eventos</Text>
+          </View>
         </View>
 
         <View style={styles.bioContainer}>
@@ -150,7 +281,16 @@ export default function Perfil() {
             metasExibidas.map((meta, index) => (
               <View key={index} style={styles.metaItem}>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.metaTitle}>{meta.nome}</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <Text style={styles.metaTitle}>{meta.nome}</Text>
+                    <TouchableOpacity onPress={() => alternarPrivacidadeMeta(meta)}>
+                      <Ionicons 
+                        name={meta.publica ? 'eye' : 'eye-off'} 
+                        size={18} 
+                        color={meta.publica ? '#4CD964' : '#999'} 
+                      />
+                    </TouchableOpacity>
+                  </View>
                   <Text style={styles.metaDate}>até {formatarData(meta.dataFim)}</Text>
                 </View>
                 <TouchableOpacity 
@@ -174,34 +314,43 @@ export default function Perfil() {
 
         {/* Eventos Postados */}
         <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>Eventos Postados</Text>
+          <Text style={styles.sectionTitle}>Eventos Postados · {eventos.length}</Text>
           
-          <FlatList
-            data={eventos}
-            horizontal
-            keyExtractor={(item) => item.id}
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.eventListContainer}
-            renderItem={({ item }) => (
-              <View style={styles.eventCard}>
-                <Image source={{ uri: item.imagem }} style={styles.eventImage} />
-                <Text style={styles.eventTitle} numberOfLines={2}>
-                  {item.titulo}
-                </Text>
-              </View>
-            )}
-          />
+          {loadingEventos ? (
+            <ActivityIndicator size="small" color="#4CD964" style={{ marginTop: 10 }} />
+          ) : eventos.length > 0 ? (
+            <FlatList
+              data={eventos}
+              horizontal
+              keyExtractor={(item) => item?.id?.toString() || Math.random().toString()}
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.eventListContainer}
+              renderItem={({ item }) => (
+                <TouchableOpacity 
+                  style={styles.eventCard}
+                  onPress={() => Alert.alert('Em Desenvolvimento', 'Exibição de detalhes do evento em desenvolvimento')}
+                >
+                  <Image source={{ uri: item.midia }} style={styles.eventImage} />
+                  <Text style={styles.eventTitle} numberOfLines={2}>
+                    {item.titulo}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            />
+          ) : (
+            <Text style={styles.devText}>Nenhum evento encontrado.</Text>
+          )}
         </View>
 
         {/* Postagens */}
         <View style={styles.postagensContainer}>
           <Text style={styles.postagensTitle}>Postagens</Text>
           <FlatList
-            data={userData.postagens}
+            data={userData?.postagens || []}
             renderItem={({ item }) => (
               <Image source={{ uri: item.midia }} style={styles.postImage} />
             )}
-            //keyExtractor={(item) => item.id.toString()}
+            keyExtractor={(item, index) => item?.id?.toString() || index.toString()}
             numColumns={3}
             contentContainerStyle={styles.postsGrid}
             ListEmptyComponent={<Text style={styles.devText}>Nenhuma postagem encontrada.</Text>}
@@ -210,7 +359,7 @@ export default function Perfil() {
         </View>
       </ScrollView>
     </SafeAreaView>
-    </SwipeableScreen>
+  </SwipeableScreen>
   );
 }
 
@@ -218,6 +367,52 @@ const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
         backgroundColor: '#fff',
+    },
+    topBar: {
+        position: 'absolute',
+        top: 10,
+        right: 0,
+        zIndex: 1000,
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        paddingHorizontal: 15,
+        paddingVertical: 10,
+    },
+    menuButton: {
+        padding: 5,
+    },
+    menuDropdown: {
+        position: 'absolute',
+        top: 45,
+        right: 15,
+        backgroundColor: '#fff',
+        borderRadius: 12,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
+        minWidth: 180,
+        zIndex: 1000,
+    },
+    menuItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: '#f0f0f0',
+    },
+    menuItemLast: {
+        borderBottomWidth: 0,
+    },
+    menuText: {
+        fontSize: 16,
+        marginLeft: 12,
+        color: '#000',
+    },
+    menuTextDanger: {
+        color: '#FF3B30',
     },
     container: {
         flex: 1,
@@ -255,6 +450,10 @@ const styles = StyleSheet.create({
     },
     statsContainer: {
         flexDirection: 'row',
+        paddingHorizontal: 20,
+        paddingVertical: 15,
+        borderBottomWidth: 1,
+        borderBottomColor: '#eee',
     },
     stat: {
         alignItems: 'center',

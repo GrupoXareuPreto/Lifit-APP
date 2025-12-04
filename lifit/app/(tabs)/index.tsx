@@ -7,12 +7,14 @@ import SwipeableScreen from '@/components/SwipeableScreen';
 import api from '@/config/axiosConfig';
 
 interface Autor {
+  id: number;
   fotoPerfil: string | null;
   nome: string;
   nomeUsuario: string;
 }
 
 interface PostagemFeed {
+  id: number;
   autor: Autor;
   midia: string;
   titulo: string;
@@ -21,6 +23,7 @@ interface PostagemFeed {
   numCurtidas: number;
   numComentaios: number;
   numCompartilhamentos: number;
+  usuarioCurtiu: boolean;
 }
 
 interface Participante {
@@ -45,6 +48,7 @@ interface EventoFeed {
   numParticipantes: number;
   participantes: Participante[];
   usuarioConfirmado: boolean;
+  usuarioCurtiu: boolean;
 }
 
 interface ItemFeed {
@@ -78,16 +82,19 @@ const FeedScreen = () => {
   // Transforma a postagem da API para o formato do PostCard
   const transformPost = (post: PostagemFeed) => {
     return {
-      id: post.dataPublicacao + post.autor.nomeUsuario, // ID único
+      id: post.id,
+      idPostagem: post.id,
+      usuarioId: post.autor.id,
       userName: post.autor.nome || 'Usuário',
       userHandle: post.autor.nomeUsuario ? `@${post.autor.nomeUsuario}` : '@usuario',
-      avatarUrl: post.autor.fotoPerfil || 'https://i.imgur.com/Qk9RNAB.png', // Avatar padrão AndrePai
+      avatarUrl: post.autor.fotoPerfil || 'https://ui-avatars.com/api/?name=Usuario&background=4CD964&color=fff&size=200',
       postImageUrl: post.midia,
       description: post.descricao || post.titulo, // Usa título como fallback se não houver descrição
       likes: post.numCurtidas,
       comments: post.numComentaios,
       shares: post.numCompartilhamentos,
       timestamp: getTimeAgo(post.dataPublicacao),
+      usuarioCurtiu: post.usuarioCurtiu,
       event: undefined, // Por enquanto sem evento
     };
   };
@@ -201,10 +208,10 @@ const FeedScreen = () => {
   // Renderizar cada item do feed
   const renderPost = ({ item }: { item: ItemFeed }) => {
     if (item.tipo === 'EVENTO' && item.evento) {
-      return <EventCard evento={item.evento} onPresencaToggle={handlePresencaToggle} />;
+      return <EventCard evento={item.evento} onPresencaToggle={handlePresencaToggle} onUpdate={() => loadFeed(true)} />;
     }
     if (item.tipo === 'POSTAGEM' && item.postagem) {
-      return <PostCard post={transformPost(item.postagem)} />;
+      return <PostCard post={transformPost(item.postagem)} onUpdate={() => loadFeed(true)} />;
     }
     return null;
   };
